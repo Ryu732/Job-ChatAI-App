@@ -1,5 +1,9 @@
 const express = require('express');
-var router = express.Router();
+const router = express.Router();
+const cors = require('cors');//corsミドルウェアを追加
+
+router.use(cors());//corsを使用
+
 
 //APIキーやモデルの設定などGeminiの準備
 const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -7,8 +11,8 @@ const genAI = new GoogleGenerativeAI(process.env.Gemini_Key);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
 
 //Geminiにプロンプトを送信
-async function run() {
-	const prompt = "Write a story about an AI and magic"
+async function run(inputText) {
+	const prompt = inputText;
   
 	const result = await model.generateContent(prompt);
 	const response = await result.response;
@@ -17,8 +21,8 @@ async function run() {
 }
 
 router.get('/', async(req, res, next) => {
-	res.send('respond with a resource');
-	run();
+	console.log(req.query.inputText);
+	run(req.query.inputText);
 });
 
 module.exports = router;

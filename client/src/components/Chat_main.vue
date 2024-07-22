@@ -5,9 +5,9 @@
 		<div class="chat-out">
 			<div v-for="message in AIResMessages" :key="message.id" class="chat-message"> {{ message.AIRestext }} </div>
 		</div>
-		<form class="form-control" @submit.prevent="sendAI">
+		<form class="form-control">
 			<input type="text" v-model="inputText" @keydown.enter="sendAI" placeholder="企業の名前を入力" class="col-md-11">
-			<button type="submit" @click="sendAI" class="btn btn-secondary col-md-1">送信</button>
+			<button  @click="sendAI" class="btn btn-secondary col-md-1">送信</button>
 		</form>
 	</div>
 </template>
@@ -23,17 +23,27 @@ const AIResMessages = ref([//AIから帰ってきた、出力
 	{ id: 3, AIRestext: 'いちです' },
 ]);
 
-// バックエンドへ入力した会社名を送る
+// 入力した会社名を送るエンドポイント
 const backendEndGemini = 'http://localhost:3000/gemini';
+
+
 //バックエンドへ生成AIのAPIを送受信
 async function sendAI() {
-	axios.get(backendEndGemini, )//axiosを利用して、バックエンドから更新
+	// エンドポイントのreqに会社名の情報を足す
+	const url = `${backendEndGemini}?inputText=${encodeURIComponent(inputText.value)}`;
+	alert(url);
+
+	//axiosを利用して、バックエンドへのデータの送受信
+	axios.get(url)
 		.then(response => {
-			alert(response.data);
+			alert(response.text);
 		})
 		.catch(error => {
 			alert('データの取得に失敗しました', error);
 		});
+
+	//入力データの削除
+	inputText.value = "";
 }
 </script>
 
