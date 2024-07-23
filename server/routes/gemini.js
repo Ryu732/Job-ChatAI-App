@@ -1,8 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const cors = require('cors');//corsミドルウェアを追加
-
-router.use(cors());//corsを使用
 
 
 //APIキーやモデルの設定などGeminiの準備
@@ -18,11 +15,12 @@ async function run(inputText) {
 	const response = await result.response;
 	const text = await response.text();
 	console.log(text);
+	return text;
 }
 
 router.get('/', async(req, res, next) => {
-	console.log(req.query.inputText);
-	run(req.query.inputText);
+	const resultText = await run(req.query.inputText);
+	res.send(resultText);
 });
 
 module.exports = router;

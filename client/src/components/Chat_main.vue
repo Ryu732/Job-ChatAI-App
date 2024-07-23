@@ -31,19 +31,18 @@ const backendEndGemini = 'http://localhost:3000/gemini';
 async function sendAI() {
 	// エンドポイントのreqに会社名の情報を足す
 	const url = `${backendEndGemini}?inputText=${encodeURIComponent(inputText.value)}`;
-	alert(url);
 
 	//axiosを利用して、バックエンドへのデータの送受信
 	axios.get(url)
 		.then(response => {
-			alert(response.text);
+			alert(response.data);
 		})
 		.catch(error => {
 			alert('データの取得に失敗しました', error);
 		});
 
 	//入力データの削除
-	inputText.value = "";
+	inputText.value = '';
 }
 </script>
 
