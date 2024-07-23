@@ -18,7 +18,7 @@ import axios from 'axios';
 
 const inputText = ref('');//ユーザーから入力される会社名
 const AIResMessages = ref([//AIから帰ってきた、出力
-	{ id: 1, AIRestext: 'いちですそんあこんな\nだうえいふぁい' },
+	{ id: 1, AIRestext: 'いちですそんあこんな\nだうえいふぁい'},
 	{ id: 2, AIRestext: 'にーです' },
 	{ id: 3, AIRestext: 'いちです' },
 ]);
