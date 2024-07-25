@@ -5,9 +5,9 @@
 		<div class="chat-out">
 			<div v-for="message in AIResMessages" :key="message.id" class="chat-message"> {{ message.AIRestext }} </div>
 		</div>
-		<form class="form-control">
-			<input type="text" v-model="inputText" @keydown.enter="sendAI" placeholder="企業の名前を入力" class="col-md-11">
-			<button  @click="sendAI" class="btn btn-secondary col-md-1">送信</button>
+		<form class="form-control" @submit.prevent="sendAI">
+			<input type="text" v-model="inputText"  placeholder="企業の名前を入力" class="col-md-11">
+			<button type="submit" class="btn btn-secondary col-md-1">送信</button>
 		</form>
 	</div>
 </template>
@@ -18,7 +18,7 @@ import axios from 'axios';
 
 const inputText = ref('');//ユーザーから入力される会社名
 const AIResMessages = ref([//AIから帰ってきた、出力
-	{ id: 1, AIRestext: 'いちですそんあこんな\nだうえいふぁい'},
+	{ id: 1, AIRestext: 'いちですそんあこんな\nだうえいふぁい' },
 	{ id: 2, AIRestext: 'にーです' },
 	{ id: 3, AIRestext: 'いちです' },
 ]);
@@ -29,16 +29,24 @@ const backendEndGemini = 'http://localhost:3000/gemini';
 
 //バックエンドへ生成AIのAPIを送受信
 async function sendAI() {
-	// エンドポイントのreqに会社名の情報を足す
-	const url = `${backendEndGemini}?inputText=${encodeURIComponent(inputText.value)}`;
+	//プロンプトをhttpリクエストに乗せるためのJSON
+	const promptMessgage = {
+		inputText: inputText.value,
+	};
 
 	//axiosを利用して、バックエンドへのデータの送受信
-	axios.get(url)
+	axios.post(backendEndGemini, promptMessgage)
 		.then(response => {
-			alert(response.data);
+			console.log(response.data.resultText);
+
+			//チャット欄に返信内容を追加
+			AIResMessages.value.push({
+				id: AIResMessages.value.length + 1,
+				AIRestext: inputText.value + response.data.resultText
+			});
 		})
 		.catch(error => {
-			alert('データの取得に失敗しました', error);
+			console.log('データの取得に失敗しました', error);
 		});
 
 	//入力データの削除
