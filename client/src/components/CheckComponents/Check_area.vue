@@ -1,4 +1,5 @@
 <!-- チェックエリアのコンポーネント-->
+<!-- 親にイベント呼び出しされるとcheckListのisCheckがtrueの部分を渡す-->
 <!-- checkText, ischekをcheck_buttons(子)に渡す-->
 <!-- ischeckが変更されると、バックエンドのリスト内容を変更-->
 
@@ -15,16 +16,28 @@
 </template>
 
 <script setup>
-import{ ref } from 'vue';
+import{ ref, defineEmits, watch} from 'vue';
 import Check from './check_button.vue';
 
+const emit = defineEmits(['send-data']);
 
+//チェック項目のリスト
 const checkList = ref([
 	{ id: 1, checkText: '企業概要', ischeck: false},
 	{ id: 2, checkText: '社長挨拶', ischeck: true},
 	{ id: 3, checkText: '主な事業', ischeck: false},
 	{ id: 4, checkText: '業界内での立ち位置と競合他社', ischeck: false},
 ]);
+
+//呼び出されたらcheckListのisCheckがtrueの部分を返す
+function sendIsCheckList(){
+	const checkItems = checkList.value.filter(item => item.ischeck);
+	emit('send-data', checkItems);
+}
+
+//チェックが変更されたら親に通知する
+watch(() => checkList.value, sendIsCheckList, { deep: true });
+
 
 //子のチェックが変更されたときに処理
 function changeIsCheck(id){
@@ -33,6 +46,7 @@ function changeIsCheck(id){
 		changeItem.ischeck = !changeItem.ischeck;//配列のチェックを変更
 	}
 }
+
 </script>
 
 <style scoped>
