@@ -9,9 +9,9 @@ const genAI = new GoogleGenerativeAI(process.env.Gemini_Key);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 //Geminiにプロンプトを送信
-async function run(inputText) {
+async function sendGemini(inputText, checkText) {
 	try {
-		const prompt = inputText;
+		const prompt = inputText + checkText;
 
 		const result = await model.generateContent(prompt);
 		const response = await result.response;
@@ -23,10 +23,20 @@ async function run(inputText) {
 	}
 }
 
-router.post('/', async (req, res) => {
-	try {
+//チェックリスト配列のテキスト部分のみを抽出して、一つの文字列にする
+function pickCheckText(checkList){
+	let totalCheckText = '';
+	for(const items of checkList){
+		totalCheckText += items.checkText + ',';
+	}
+	return totalCheckText;
+}
 
-		const resultText = await run(req.body.inputText);
+router.post('/', async (req, res) => {
+
+	const checkText = pickCheckText(req.body.checkList);//聞きたい項目を一つの文字列にしたやつ
+	try {
+		const resultText = await sendGemini(req.body.inputText, checkText);
 		console.log('Backend response:', resultText); // レスポンスをログに出力
 		res.json({ resultText }); // JSON形式でレスポンスを返す
 	} catch (error) {
