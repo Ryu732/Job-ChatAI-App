@@ -4,12 +4,13 @@
 	<div class="chat-container">
 		<div class="chat-out">
 			<div v-for="message in AIResMessages" :key="message.id" class="chat-message">
-				{{ message.CompanyName }}<br />
+				{{ message.CompanyName }}<br/>
+				{{ message.choiceCheckList }}<br/>
 				{{ message.AIRestext }}
 			</div>
 		</div>
 		<form class="form-control" @submit.prevent="sendAI">
-			<input type="text" v-model="inputText" placeholder="企業の名前を入力" class="col-md-11">
+			<input type="text" v-model="inputText" placeholder="企業の名前を入力" class="col-md-11" :disabled="isSubmit">
 			<button type="submit" class="btn btn-secondary col-md-1" :disabled="isSubmit">送信</button>
 		</form>
 	</div>
@@ -24,10 +25,13 @@ const props = defineProps({
 });
 
 const inputText = ref('');//ユーザーから入力される会社名
-const AIResMessages = ref([//AIから帰ってきた、出力
-	{ id: 1, AIRestext: 'いちですそんあこんな\nだうえいふぁい', CompanyName: '' },
-	{ id: 2, AIRestext: 'にーです', CompanyName: '' },
-	{ id: 3, AIRestext: 'いちです', CompanyName: '' },
+const AIResMessages = ref([//チャット画面に表示させる情報
+	{ 	
+		id: 1, 
+		CompanyName:'AIの入力がここに記述されます',
+		choiceCheckList : '左の項目から選んで、会社名を送信してください',
+		AIRestext: '', 
+	},
 ]);
 
 // 入力した会社名を送るエンドポイント
@@ -50,8 +54,6 @@ async function sendAI() {
 		checkList: props.trueCheckList//チェックリストの会社
 	};
 
-	//TODO checkListの中身の確認(console.log)とサーバーサイドにchecklistを送信が未実装
-
 	//axiosを利用して、バックエンドへのデータの送受信
 	await axios.post(backendEndGemini, promptMessgage)
 		.then(response => {
@@ -59,14 +61,15 @@ async function sendAI() {
 			AIResMessages.value.push({
 				id: AIResMessages.value.length + 1,
 				CompanyName: inputText.value,
-				AIRestext: inputText.value + response.data.resultText
+				choiceCheckList: response.data.checkText,
+				AIRestext: response.data.resultText
 			});
 		})
 		.catch(error => {
 			alert('データの取得に失敗しました', error);
 		});
 
-	isSubmit.value = true;//フォーム送信中をオンにする
+	isSubmit.value = false;//フォーム送信中をオンにする
 	inputText.value = '';//入力データの削除
 }
 </script>
