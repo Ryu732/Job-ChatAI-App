@@ -66,7 +66,7 @@ async function sendAI() {
 			});
 		})
 		.catch(error => {
-			alert('データの取得に失敗しました', error);
+			alert('データの取得に失敗しました。再度お試しください', error);
 		});
 
 	isSubmit.value = false;//フォーム送信中をオンにする
