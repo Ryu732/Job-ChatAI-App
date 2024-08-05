@@ -1,11 +1,11 @@
-//リクエストが来たら、Geminiに質問
+//リクエストが来たら、Geminiに質問して、DBに質問内容を保存
 //req	checkList:聞きたい項目の配列 inputText:ユーザーが入力した会社名
 //res	checkText:聞きたい項目を一つの文字列化 resultText:AIからの出力 
 
 const express = require('express');
 const router = express.Router();
 require('dotenv').config();
-const axios = require('axios'); // axiosを使って保存処理のルートにリクエストを送信
+const { insertDB } = require('./db'); // データベースモジュールをインポート
 
 
 //APIキーやモデルの設定などGeminiの準備
@@ -16,7 +16,7 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 //Geminiにプロンプトを送信
 async function sendGemini(inputText, checkText) {
 	try {
-		const prompt = inputText + checkText;
+		const prompt = inputText + checkText;//入力内容と選択テキストを合わせる
 
 		const result = await model.generateContent(prompt);
 		const response = await result.response;
@@ -45,15 +45,13 @@ router.post('/', async (req, res) => {
 		console.log('Backend response:', resultText); // レスポンスをログに出力
 
 		const saveQuery = {
-			inputText: req.body.inputText,
-			checkText: checkText,
-			resultText: resultText
+			CompanyName: req.body.inputText,
+			choiceCheckList: checkText,
+			AIRestext: resultText
 		};
-		res.json({ resultText, checkText }); // JSON形式でレスポンスを返す
-
 		// ファイル保存のルートにリクエストを送信
-		axios.post(`${process.env.serverURL}/insertDB`, {saveQuery});
-		
+		await insertDB(saveQuery);
+		res.json({ resultText, checkText }); // JSON形式でレスポンスを返す
 	} catch (error) {
 		console.error('Error in backend:', error);
 		res.status(500).send('Error generating content');

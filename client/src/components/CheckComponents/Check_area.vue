@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import{ ref, defineEmits, watch} from 'vue';
+import{ ref, defineEmits, watch, onMounted} from 'vue';
 import Check from './check_button.vue';
 
 const emit = defineEmits(['send-data']);
@@ -38,7 +38,9 @@ function sendIsCheckList(){
 	emit('send-data', checkItems);
 }
 
-//チェックが変更されたら親に通知する
+
+//マウント時&チェックが変更されたら親に通知する
+onMounted(() => { sendIsCheckList (); });
 watch(() => checkList.value, sendIsCheckList, { deep: true });
 
 

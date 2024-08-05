@@ -4,8 +4,8 @@
 	<div class="chat-container">
 		<div class="chat-out">
 			<div v-for="message in AIResMessages" :key="message.id" class="chat-message">
-				{{ message.CompanyName }}<br/>
-				{{ message.choiceCheckList }}<br/>
+				{{ message.CompanyName }}<br />
+				{{ message.choiceCheckList }}<br />
 				{{ message.AIRestext }}
 			</div>
 		</div>
@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps } from 'vue';
+import { ref, defineProps, onMounted } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -26,11 +26,11 @@ const props = defineProps({
 
 const inputText = ref('');//ユーザーから入力される会社名
 const AIResMessages = ref([//チャット画面に表示させる情報
-	{ 	
-		id: 1, 
-		CompanyName:'AIの入力がここに記述されます',
-		choiceCheckList : '左の項目から選んで、会社名を送信してください',
-		AIRestext: '', 
+	{
+		id: 1,
+		CompanyName: 'AIの入力がここに記述されます',
+		choiceCheckList: '左の項目から選んで、会社名を送信してください',
+		AIRestext: '',
 	},
 ]);
 
@@ -72,6 +72,27 @@ async function sendAI() {
 	isSubmit.value = false;//フォーム送信中をオンにする
 	inputText.value = '';//入力データの削除
 }
+
+const backendEndPastdb = 'http://localhost:3000/getpastdb';
+// マウント時にAIResMessagesをDBから取得する
+onMounted(async () => {
+	await axios.get(backendEndPastdb)
+		.then(response => {
+			for (const doc of response.data) {
+				//チャット欄にDBの内容を追加
+				AIResMessages.value.push({
+					id: AIResMessages.value.length + 1,
+					CompanyName: doc.CompanyName,
+					choiceCheckList: doc.choiceCheckList,
+					AIRestext: doc.AIRestext
+				});
+			}
+
+		})
+		.catch(error => {
+			console.log('DBのデータ取得失敗',error);
+		});
+});
 </script>
 
 <style scoped>
