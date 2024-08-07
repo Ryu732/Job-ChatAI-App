@@ -3,24 +3,28 @@
 <!-- ischeckが変更されると、親にchangeCheckのイベントハンドラー-->
 
 <template>
-	<div class="form-check form-switch">
-		<input type="checkbox" v-model="ischeck" @change="$emit('changeCheck')" class="form-check-input">	
-		<label class="form-check-label" for="flexSwitchCheckDefault">{{ checkText }}</label>
-	</div>
+	<v-switch 
+		v-model="ischeck"
+		@change="$emit('changeCheck')"
+		:label="checkText"
+		color="primary"
+	>
+	</v-switch>
 </template>
 
 <script setup>
-import { ref , defineProps} from 'vue';
+import { ref, defineProps } from 'vue';
 
-const props = defineProps([ 'checkText' , 'ischeck']);
+const props = defineProps(['checkText', 'ischeck']);
 const ischeck = ref(props.ischeck);
 </script>
 
 <style scoped>
-.form-check{
+.form-check {
 	display: flex;
 	align-items: center;
 }
+
 .form-check-input {
 	margin-top: 0;
 	margin-bottom: 0;

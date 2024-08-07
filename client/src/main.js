@@ -1,7 +1,10 @@
-import { createApp } from 'vue';
-import App from './App.vue';
+import { createApp } from 'vue'
+import App from './ChatComQuestionApp.vue'
+import vuetify from './plugins/vuetify'
+import { loadFonts } from './plugins/webfontloader'
 
-import 'bootstrap/dist/css/bootstrap.css';
+loadFonts()
 
-const app = createApp(App);
-app.mount('#app');
+createApp(App)
+  .use(vuetify)
+  .mount('#app')

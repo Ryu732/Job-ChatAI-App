@@ -9,10 +9,10 @@
 				{{ message.AIRestext }}
 			</div>
 		</div>
-		<form class="form-control" @submit.prevent="sendAI">
-			<input type="text" v-model="inputText" placeholder="企業の名前を入力" class="col-md-11" :disabled="isSubmit">
-			<button type="submit" class="btn btn-secondary col-md-1" :disabled="isSubmit">送信</button>
-		</form>
+		<v-form @submit.prevent="sendAI" class="input-form">
+			<v-text-field v-model="inputText" label="企業の名前を入力" :disabled="isSubmit" class="text-input"></v-text-field>
+			<v-btn @click="sendAI" :loading="isSubmit" rounded="lg" class="send-btn">送信</v-btn>
+		</v-form>
 	</div>
 </template>
 
@@ -90,29 +90,44 @@ onMounted(async () => {
 
 		})
 		.catch(error => {
-			console.log('DBのデータ取得失敗',error);
+			console.log('DBのデータ取得失敗', error);
 		});
 });
 </script>
 
 <style scoped>
 .chat-container {
-	height: 100vh;
+	max-width: 100%;
 	display: flex;
 	flex-direction: column;
+	height: 100%;
 }
 
 .chat-out {
-	background-color: #f0f0f0;
+	background-color: #e0e0e0;
 	flex: 1;
 	overflow-y: auto;
 	padding: 1em;
+	margin-bottom: 0.5em;
+	border-radius: 0.5em;
 }
 
 .chat-message {
-	background-color: rgb(207, 207, 207);
+	background-color: rgb(197, 196, 196);
 	padding: 1em;
 	margin-bottom: 0.5em;
 	border-radius: 0.5em;
+}
+
+.input-form {
+	display: flex;
+}
+
+.text-input {
+	flex: 1;
+}
+
+.send-btn {
+	height: 70%;
 }
 </style>
