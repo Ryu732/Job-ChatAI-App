@@ -44,12 +44,13 @@ function changeIsCheck(id) {
 </script>
 
 <style scoped>
-.checkAreaList{
+.checkAreaList {
 	line-height: 0;
 	padding: 0%;
 	margin: 0%;
 }
-.checkAreaHead{
+
+.checkAreaHead {
 	line-height: 2em;
 }
 </style>

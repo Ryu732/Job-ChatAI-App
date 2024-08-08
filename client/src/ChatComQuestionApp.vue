@@ -1,9 +1,6 @@
 <template>
 	<v-app>
-		<v-app-bar app color="primary" class="app-bar">
-			App Bar
-		</v-app-bar>
-
+		<AppBar />
 
 		<v-main>
 			<v-container fluid fill-height class="main-content">
@@ -21,6 +18,7 @@
 </template>
 
 <script setup>
+import AppBar from './components/MainAppbar.vue';
 import Check from './components/Check_area.vue';
 import Chat from './components/Chat_main.vue';
 import { ref } from 'vue';

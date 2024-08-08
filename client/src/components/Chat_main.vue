@@ -4,13 +4,14 @@
 	<div class="chat-container">
 		<div class="chat-out">
 			<div v-for="message in AIResMessages" :key="message.id" class="chat-message">
-				{{ message.CompanyName }}<br />
+				<h3>{{ message.CompanyName }}</h3><br />
 				{{ message.choiceCheckList }}<br />
 				{{ message.AIRestext }}
 			</div>
 		</div>
 		<v-form @submit.prevent="sendAI" class="input-form">
-			<v-text-field v-model="inputText" label="企業の名前を入力" :disabled="isSubmit" class="text-input"></v-text-field>
+			<v-text-field v-model="inputText" label="企業の名前を入力" :disabled="isSubmit" class="text-input"
+				clearable></v-text-field>
 			<v-btn @click="sendAI" :loading="isSubmit" rounded="lg" class="send-btn">送信</v-btn>
 		</v-form>
 	</div>
@@ -35,7 +36,7 @@ const AIResMessages = ref([//チャット画面に表示させる情報
 ]);
 
 // 入力した会社名を送るエンドポイント
-const backendEndGemini = 'http://localhost:3000/gemini';
+const backendEndGemini = '${process.env.Server_BaseURL}/gemini';
 
 const isSubmit = ref(false);//バックエンドに送信中かどうか
 
@@ -73,7 +74,7 @@ async function sendAI() {
 	inputText.value = '';//入力データの削除
 }
 
-const backendEndPastdb = 'http://localhost:3000/getpastdb';
+const backendEndPastdb = '${process.env.Server_BaseURL}/getpastdb';
 // マウント時にAIResMessagesをDBから取得する
 onMounted(async () => {
 	await axios.get(backendEndPastdb)

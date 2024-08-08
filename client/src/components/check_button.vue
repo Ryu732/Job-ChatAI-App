@@ -3,12 +3,7 @@
 <!-- ischeckが変更されると、親にchangeCheckのイベントハンドラー-->
 
 <template>
-	<v-switch 
-		v-model="ischeck"
-		@change="$emit('changeCheck')"
-		:label="checkText"
-		color="primary"
-	>
+	<v-switch v-model="ischeck" @change="$emit('changeCheck')" :label="checkText" color="primary">
 	</v-switch>
 </template>
 
