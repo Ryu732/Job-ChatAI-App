@@ -4,8 +4,8 @@
 	<div class="chat-container">
 		<div class="chat-out">
 			<div v-for="message in AIResMessages" :key="message.id" class="chat-message">
-				<h3>{{ message.CompanyName }}</h3><br />
-				{{ message.choiceCheckList }}<br />
+				<h3>{{ message.CompanyName }}</h3>
+				<h4>{{ message.choiceCheckList }}</h4>
 				{{ message.AIRestext }}
 			</div>
 		</div>
@@ -18,15 +18,15 @@
 </template>
 
 <script setup>
-import { ref, defineProps, onMounted } from 'vue';
+import { ref, defineProps, onMounted, nextTick } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
 	trueCheckList: Array, // チェックリストを親から受け取る
 });
 
-const inputText = ref('');//ユーザーから入力される会社名
-const AIResMessages = ref([//チャット画面に表示させる情報
+const inputText = ref('');// ユーザーから入力される会社名
+const AIResMessages = ref([// チャット画面に表示させる情報
 	{
 		id: 1,
 		CompanyName: 'AIの入力がここに記述されます',
@@ -36,49 +36,58 @@ const AIResMessages = ref([//チャット画面に表示させる情報
 ]);
 
 // 入力した会社名を送るエンドポイント
-const backendEndGemini = '${process.env.Server_BaseURL}/gemini';
+const baseURL = process.env.VUE_APP_SERVER_BASEURL;
+const backendEndGemini = `${baseURL}/gemini`;
+const backendEndPastdb = `${baseURL}/getpastdb`;
 
-const isSubmit = ref(false);//バックエンドに送信中かどうか
+const isSubmit = ref(false);// バックエンドに送信中かどうか
 
-//バックエンドへ生成AIのAPIを送受信
+// バックエンドへ生成AIのAPIを送受信
 async function sendAI() {
-	//入力内容が空かどうかチェック
+	// 入力内容が空かどうかチェック
 	if (inputText.value.trim() === '') {
 		alert('企業名が入力されていません');
 		return;
 	}
 
-	isSubmit.value = true;//フォーム送信中をオンにする
-	//プロンプトをhttpリクエストに乗せるためのJSON
+	isSubmit.value = true;// フォーム送信中をオンにする
+	// プロンプトをhttpリクエストに乗せるためのJSON
 	const promptMessgage = {
-		inputText: inputText.value,//入力された会社名
-		checkList: props.trueCheckList//チェックリストの会社
+		inputText: inputText.value,// 入力された会社名
+		checkList: props.trueCheckList// チェックリストの会社
 	};
 
-	//axiosを利用して、バックエンドへのデータの送受信
+	// axiosを利用して、バックエンドへのデータの送受信
 	await axios.post(backendEndGemini, promptMessgage)
-		.then(response => {
-			//チャット欄に返信内容を追加
+		.then(async response => {
+			// チャット欄に返信内容を追加
 			AIResMessages.value.push({
 				id: AIResMessages.value.length + 1,
 				CompanyName: inputText.value,
 				choiceCheckList: response.data.checkText,
 				AIRestext: response.data.resultText
 			});
+			await nextTick();// DOMの更新待ち
+			scrollToBottom();// チャットのスクロール
 		})
 		.catch(error => {
 			alert('データの取得に失敗しました。再度お試しください', error);
 		});
 
-	isSubmit.value = false;//フォーム送信中をオンにする
-	inputText.value = '';//入力データの削除
+	isSubmit.value = false;// フォーム送信中をオンにする
+	inputText.value = '';// 入力データの削除
 }
 
-const backendEndPastdb = '${process.env.Server_BaseURL}/getpastdb';
+// 一番下まで、チャット画面をスクロールする
+function scrollToBottom() {
+	const chatContainer = document.querySelector('.chat-out');
+	chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
 // マウント時にAIResMessagesをDBから取得する
 onMounted(async () => {
 	await axios.get(backendEndPastdb)
-		.then(response => {
+		.then(async response => {
 			for (const doc of response.data) {
 				//チャット欄にDBの内容を追加
 				AIResMessages.value.push({
@@ -88,7 +97,8 @@ onMounted(async () => {
 					AIRestext: doc.AIRestext
 				});
 			}
-
+			await nextTick();// DOMの更新待ち
+			scrollToBottom();// チャットのスクロール
 		})
 		.catch(error => {
 			console.log('DBのデータ取得失敗', error);

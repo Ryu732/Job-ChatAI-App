@@ -42,10 +42,8 @@ body {
 
 .v-main {
 	height: calc(100vh - 4em);
-	/* v-app-barの高さ分を減算 */
 	padding: 0;
 	margin-top: 4em;
-	/* v-app-barの高さ分のマージンを追加 */
 }
 
 .app-bar {

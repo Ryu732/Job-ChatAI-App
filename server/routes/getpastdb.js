@@ -4,9 +4,9 @@ const { getAllDocumentDB } = require('./db'); // データベースモジュー�
 
 //過去のプロンプト履歴のリクエストが来たら
 router.get('/', async (req, res) => {
-	try{
-		res.json( await getAllDocumentDB() );
-	}catch(error){
+	try {
+		res.json(await getAllDocumentDB());
+	} catch (error) {
 		res.send('過去の履歴がみれませんでした');
 	}
 });
