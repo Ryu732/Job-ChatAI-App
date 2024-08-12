@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
 			AIRestext: resultText
 		};
 		// ファイル保存のルートにリクエストを送信
-		await insertDB(saveQuery);
+		await insertDB('test', 'test', saveQuery);//引数 dbName:DB名 collectionName:コレクション名 saveQuery:保存したい内容(JSON)
 		res.json({ resultText, checkText }); // JSON形式でレスポンスを返す
 	} catch (error) {
 		console.error('Error in backend:', error);

@@ -9,16 +9,16 @@ const client = new MongoClient(uri);
 
 //DBにデータを保存
 //引数	dbName:DB名 collectionName:コレクション名 saveQuery:保存したい内容(JSON)
-async function insertDB(saveQuery) {
+async function insertDB(dbName, collectionName, saveQuery) {
 	try {
 		// データベース、コレクションを指定
 		await client.connect();
-		const database = client.db('test');
-		const collection = database.collection('test');
+		const database = client.db(dbName);
+		const collection = database.collection(collectionName);
 
 		await collection.insertOne(saveQuery);//データを追加
 	} catch (error) {
-		console.error('Error saving data:', error);
+		console.error('データの保存失敗:', error);
 		throw error;
 	} finally {
 		await client.close();
@@ -38,7 +38,7 @@ async function getAllDocumentDB() {
 		const document = collection.find({});//データを追加
 		return await document.toArray();//データを追加
 	} catch (error) {
-		console.error('Error saving data:', error);
+		console.error('データ取得失敗:', error);
 		throw error;
 	} finally {
 		await client.close();
