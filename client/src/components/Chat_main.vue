@@ -18,8 +18,12 @@
 </template>
 
 <script setup>
-import { ref, defineProps, onMounted, nextTick } from 'vue';
+import { ref, defineProps, onMounted, nextTick, computed, watch } from 'vue';
+import { useAuthStore } from '@/stores/authstore';
 import axios from 'axios';
+
+const authStore = useAuthStore();
+const islogin = computed(() => authStore.isAuth);//ログインしているかどうか
 
 const props = defineProps({
 	trueCheckList: Array, // チェックリストを親から受け取る
@@ -84,26 +88,31 @@ function scrollToBottom() {
 	chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-// マウント時にAIResMessagesをDBから取得する
-onMounted(async () => {
-	await axios.get(backendEndPastdb)
-		.then(async response => {
-			for (const doc of response.data) {
-				//チャット欄にDBの内容を追加
-				AIResMessages.value.push({
-					id: AIResMessages.value.length + 1,
-					CompanyName: doc.CompanyName,
-					choiceCheckList: doc.choiceCheckList,
-					AIRestext: doc.AIRestext
-				});
-			}
-			await nextTick();// DOMの更新待ち
-			scrollToBottom();// チャットのスクロール
-		})
-		.catch(error => {
-			console.log('DBのデータ取得失敗', error);
-		});
-});
+
+onMounted(() => loginChat());// マウント時にAIResMessagesをDBから取得する
+watch(islogin, () => loginChat());//ログイン状態が変更時に、チャットの内容も変える
+
+async function loginChat() {
+	if (islogin.value) {//ログインしているなら
+		await axios.get(backendEndPastdb)
+			.then(async response => {
+				for (const doc of response.data) {
+					//チャット欄にDBの内容を追加
+					AIResMessages.value.push({
+						id: AIResMessages.value.length + 1,
+						CompanyName: doc.CompanyName,
+						choiceCheckList: doc.choiceCheckList,
+						AIRestext: doc.AIRestext,
+					});
+				}
+				await nextTick();// DOMの更新待ち
+				scrollToBottom();// チャットのスクロール
+			})
+			.catch(error => {
+				console.log('DBのデータ取得失敗', error);
+			});
+	}
+}
 </script>
 
 <style scoped>

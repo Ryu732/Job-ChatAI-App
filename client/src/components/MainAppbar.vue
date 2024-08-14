@@ -4,13 +4,20 @@
 <template>
 	<v-app-bar color="primary">
 		<template v-slot:append>
-			<v-btn @click="singupDialog = true" class="account-btn">
+			<v-btn @click="singupDialog = true" v-if="!islogin" class="account-btn">
 				<v-icon left large>mdi-account-plus</v-icon>
 				アカウント作成
 			</v-btn>
-			<v-btn @click="loginDialog = true" class="account-btn">
+			<v-btn @click="loginDialog = true" v-if="!islogin" class="account-btn">
 				<v-icon left large>mdi-login</v-icon>
 				ログイン
+			</v-btn>
+			<div v-if="islogin">
+				{{ username }}さん
+			</div>
+			<v-btn @click="logoutDialog = true" v-if="islogin" class="account-btn">
+				<v-icon left large>mdi-logout</v-icon>
+				ログアウト
 			</v-btn>
 
 			<v-btn>
@@ -51,7 +58,7 @@
 				<v-spacer>
 					<div class="errorMsg"> {{ errorMessage }} </div>
 				</v-spacer>
-				<v-btn color="black" @click="loginDialog = false" :disabled="isSubmit">Close</v-btn>
+				<v-btn @click="loginDialog = false; clearLoginData()" :disabled="isSubmit" color="primary">閉じる</v-btn>
 			</v-card-actions>
 		</v-card>
 	</v-dialog>
@@ -77,18 +84,42 @@
 				<v-spacer>
 					<div class="errorMsg"> {{ errorMessage }} </div>
 				</v-spacer>
-				<v-btn color="black" @click="singupDialog = false" :disabled="isSubmit">Close</v-btn>
+				<v-btn @click="singupDialog = false; clearLoginData()" :disabled="isSubmit" color="primary">閉じる</v-btn>
+			</v-card-actions>
+		</v-card>
+	</v-dialog>
+	<!-- ログアウトダイアログ-->
+	<v-dialog v-model="logoutDialog" persistent max-width="30em">
+		<v-card class="signup-sheet">
+			<v-card-title class="logout-card">
+				<span class="headline">ログアウト</span>
+			</v-card-title>
+			<v-card-text class="logout-card">
+				<p>{{ username }} さん</p>
+				<p>本当にログアウトしてもよろしいですか？</p>
+			</v-card-text>
+			<v-card-actions style="justify-content: space-between;" class="logout-card">
+				<v-btn @click="logoutDialog = false; logout()"
+					style="background-color: red; color: white;">ログアウト</v-btn>
+				<v-btn @click="logoutDialog = false" color="primary">閉じる</v-btn>
 			</v-card-actions>
 		</v-card>
 	</v-dialog>
 </template>
 
 <script setup>
-import { ref, } from 'vue';
+import { ref, computed } from 'vue';
+import { useAuthStore } from '@/stores/authstore';
 import axios from 'axios';
+
+const authStore = useAuthStore();
+
+const islogin = computed(() => authStore.isAuth);//ログインしているかどうか
+const username = computed(() => authStore.userId);//ログイン中のユーザー名
 
 const loginDialog = ref(false);//ログインダイアログの送信中
 const singupDialog = ref(false);//サインアップダイアログの送信中
+const logoutDialog = ref(false);//サインアップダイアログの送信中
 const loginID = ref('');
 const loginPass = ref('');
 
@@ -100,8 +131,13 @@ const isSubmit = ref(false);//フォームを送信中
 const baseURL = process.env.VUE_APP_SERVER_BASEURL;
 const backendEndUsers = `${baseURL}/users`;
 
+//入力していたログイン情報などを消去
+function clearLoginData() {
+	loginID.value = '';
+	loginPass.value = '';
+	errorMessage.value = '';
+}
 
-///////未実装ログイン関数(トークン認証)
 //ログイン情報をバックエンドに送る
 async function login() {
 	isSubmit.value = true;
@@ -109,12 +145,10 @@ async function login() {
 	await axios.post(`${backendEndUsers}/login`, { id: loginID.value, password: loginPass.value })
 		.then(response => {
 			if (response.data.success) {//ログイン成功時
-				alert(response.data.message);
-
-				//ログイン画面を閉じる
-				loginDialog.value = false;
-				loginID.value = '';
-				loginPass.value = '';
+				alert(response.data.message);//画面出力
+				authStore.login(response.data.userId);//ストアに保存
+				loginDialog.value = false; // ログインダイアログを閉じる
+				clearLoginData(); // フォームデータをクリア
 			} else {//ログイン失敗時
 				errorMessage.value = response.data.message;
 			}
@@ -128,7 +162,6 @@ async function login() {
 	isSubmit.value = false;
 }
 
-///////未実装アカウント作成関数(トークン認証)
 //アカウント登録情報をバックエンドに送る
 async function singup() {
 	isSubmit.value = true;
@@ -136,16 +169,13 @@ async function singup() {
 	await axios.post(`${backendEndUsers}/signup`, { id: loginID.value, password: loginPass.value })
 		.then(response => {
 			if (response.data.success) {//アカウント作成成功時
-				alert(response.data.message);
-
-				//アカウント作成画面を閉じる
-				singupDialog.value = false;
-				loginID.value = '';
-				loginPass.value = '';
+				alert(response.data.message);//画面出力
+				authStore.login(response.data.userId);//ストアに保存
+				loginDialog.value = false; // ログインダイアログを閉じる
+				clearLoginData(); // フォームデータをクリア
 			} else {//アカウント作成失敗時
 				errorMessage.value = response.data.message;
 			}
-
 		})
 		.catch(error => {
 			errorMessage.value = error;//データ取得やバックエンド接続失敗時
@@ -153,6 +183,12 @@ async function singup() {
 		});
 
 	isSubmit.value = false;
+}
+
+//ログアウト処理
+function logout() {
+	authStore.logout();//ストアのログアウト関数を実行
+	window.location.reload();//画面リロード
 }
 </script>
 
@@ -177,5 +213,9 @@ async function singup() {
 
 .account-btn .v-icon {
 	margin-right: 0.2em;
+}
+
+.logout-card {
+	margin: 1.5vh 0;
 }
 </style>

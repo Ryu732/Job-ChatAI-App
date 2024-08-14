@@ -1,11 +1,11 @@
 //リクエストが来たら、Geminiに質問して、DBに質問内容を保存
 //req	checkList:聞きたい項目の配列 inputText:ユーザーが入力した会社名
 //res	checkText:聞きたい項目を一つの文字列化 resultText:AIからの出力 
-
 const express = require('express');
 const router = express.Router();
 require('dotenv').config();
-const { insertDB } = require('./db'); // データベースモジュールをインポート
+const { insertDB } = require('../middlewares/db'); // データベースモジュールをインポート
+const { checkToken } = require('../middlewares/auth'); // 認証ミドルウェアをインポート
 
 
 //APIキーやモデルの設定などGeminiの準備
@@ -39,8 +39,10 @@ function pickCheckText(checkList) {
 
 //リクエストが来た時の処理
 router.post('/', async (req, res) => {
-	const checkText = pickCheckText(req.body.checkList);//聞きたい項目を一つの文字列にしたやつ
 	try {
+		const checkText = pickCheckText(req.body.checkList);//聞きたい項目を一つの文字列にしたやつ
+		const username = await checkToken(req.cookies.authToken);//ヘッダーのトークンを渡して、認証されたユーザーネームを受け取る
+
 		const resultText = await sendGemini(req.body.inputText, checkText);
 		console.log('Backend response:', resultText); // レスポンスをログに出力
 
@@ -49,8 +51,10 @@ router.post('/', async (req, res) => {
 			choiceCheckList: checkText,
 			AIRestext: resultText
 		};
-		// ファイル保存のルートにリクエストを送信
-		await insertDB('test', 'test', saveQuery);//引数 dbName:DB名 collectionName:コレクション名 saveQuery:保存したい内容(JSON)
+		if (username !== null) {//ユーザーネームが空じゃないなら
+			// ファイル保存のルートにリクエストを送信
+			await insertDB(username, 'comQuestion', saveQuery);//引数 dbName:DB名 collectionName:コレクション名 saveQuery:保存したい内容(JSON)
+		}
 		res.json({ resultText, checkText }); // JSON形式でレスポンスを返す
 	} catch (error) {
 		console.error('Error in backend:', error);
