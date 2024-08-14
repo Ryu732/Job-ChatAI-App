@@ -4,7 +4,7 @@ const { getAllDocumentDB } = require('../middlewares/db'); // DBモジュール�
 const { checkToken } = require('../middlewares/auth'); // 認証ミドルウェアをインポート
 
 
-//過去のプロンプト履歴のリクエストが来たら
+// 過去のプロンプト履歴のリクエストが来たら
 router.get('/', async (req, res) => {
 	const token = req.cookies.authToken;
 	if (!token) {
@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
 	}
 
 	try {
-		const username = await checkToken(token);//ヘッダーのトークンを渡して、認証されたユーザーネームを受け取る
+		const username = await checkToken(token);// ヘッダーのトークンを渡して、認証されたユーザーネームを受け取る
 		if (username === null) {
 			res.send('');
 		} else {

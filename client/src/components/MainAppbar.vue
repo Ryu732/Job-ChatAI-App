@@ -186,8 +186,17 @@ async function singup() {
 }
 
 //ログアウト処理
-function logout() {
-	authStore.logout();//ストアのログアウト関数を実行
+async function logout() {
+
+	await axios.get(`${backendEndUsers}/logout`)
+		.then(response => {
+			alert(response.data.message);
+		})
+		.catch(error => {
+			errorMessage.value = error;//失敗時
+			console.log('ログアウト失敗', error);
+		});
+	await authStore.logout();//ストアのログアウト関数を実行
 	window.location.reload();//画面リロード
 }
 </script>

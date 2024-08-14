@@ -1,10 +1,10 @@
-//認証関係の関数を提供
+// 認証関係の関数を提供
 require('dotenv').config();
 const jwt = require('jsonwebtoken');//JWTトークン発行ライブラリ
 const tokenKey = process.env.JWT_SECRET;
 
-//認証トークンの生成 
-//引数　id:ユーザーID　戻り値:トークン(JSON)
+// 認証トークンの生成 
+// 引数　id:ユーザーID　戻り値:トークン(JSON)
 function createToken(id) {
 	return jwt.sign(
 		{ id: id },
@@ -13,8 +13,8 @@ function createToken(id) {
 	);
 }
 
-//認証トークンの照合
-//引数	authHeader:認証トークン　戻り値:ユーザーネーム
+// 認証トークンの照合
+// 引数	authHeader:認証トークン　戻り値:ユーザーネーム
 async function checkToken(token) {
 	if (!token) { // トークンが存在しない場合
 		return null;

@@ -18,7 +18,7 @@ export const useAuthStore = defineStore('auth', {
 		},
 		logout() {
 			this.userId = null;
-			document.cookie = 'userId=; Max-Age=0; path=/;'; // クッキーから userId を削除
+			document.cookie = 'userId=; Max-Age=0; path=/;';
 		}
 	},
 	getters: {

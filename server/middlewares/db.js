@@ -1,13 +1,13 @@
-//DB関係の関数を提供
-//接続情報
+// DB関係の関数を提供
+// 接続情報
 const { MongoClient } = require("mongodb");
 require('dotenv').config();
 const uri = process.env.mongoDB_Key;
 const client = new MongoClient(uri);
 
 
-//DBにデータを保存
-//引数	dbName:DB名 collectionName:コレクション名 saveQuery:保存したい内容(JSON)
+// DBにデータを保存
+// 引数	dbName:DB名 collectionName:コレクション名 saveQuery:保存したい内容(JSON)
 async function insertDB(dbName, collectionName, saveQuery) {
 	try {
 		// データベース、コレクションを指定
@@ -24,9 +24,9 @@ async function insertDB(dbName, collectionName, saveQuery) {
 	}
 }
 
-//DBからコレクション内の全データを取得
-//引数	dbName:DB名 collectionName:コレクション名
-//戻り値　取得したJSONの配列
+// DBからコレクション内の全データを取得
+// 引数	dbName:DB名 collectionName:コレクション名
+// 戻り値　取得したJSONの配列
 async function getAllDocumentDB(dbName, collectionName) {
 	try {
 		// データベース、コレクションを指定
@@ -44,9 +44,9 @@ async function getAllDocumentDB(dbName, collectionName) {
 	}
 }
 
-//DBからコレクション内のデータを検索
-//引数	dbName:DB名 collectionName:コレクション名 searchField: 探したいフィールド searchData:探したいデータ
-//戻り値　見つかったデータ(発見できなかった場合は、'見つかりませんでした'を返す)
+// DBからコレクション内のデータを検索
+// 引数	dbName:DB名 collectionName:コレクション名 searchField: 探したいフィールド searchData:探したいデータ
+// 戻り値　見つかったデータ(発見できなかった場合は、'見つかりませんでした'を返す)
 async function searchDocumentDB(dbName, collectionName, searchField, searchData) {
 	try {
 		// データベース、コレクションを指定
