@@ -1,6 +1,7 @@
 // 会社検索等の関数
 const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
-const { createReactAgent } = require("langchain/agents");
+const { AgentExecutor, createReactAgent } = require("langchain/agents");
+const { PromptTemplate } = require("@langchain/core/prompts");
 const { DuckDuckGoSearch } = require("@langchain/community/tools/duckduckgo_search");
 
 // APIキーやモデルの設定などGeminiの準備
@@ -14,10 +15,29 @@ const geminiLlm = new ChatGoogleGenerativeAI({
 // 検索エンジンDuckDuckGoの設定
 const ddgSearchTool = new DuckDuckGoSearch({ maxResults: 1 });
 
-// プロンプトテンプレートの設定
+// テスト用の関数
+async function duckTest(companyName, comQuestion) {
+
+	// const comQuestionArray = comQuestion.split('  '); // 二重スペースで分割
+	// for (const questionItem of comQuestionArray) {
+	// 	const fullQuery = `${companyName} ${questionItem}`; // 会社名と質問事項を合わせる
+	// 	console.log(`Running query: ${fullQuery}`);
+	// 	const modelGeneratedToolCall = {
+	// 		args: {
+	// 			input: fullQuery,
+	// 		},
+	// 		id: "tool_call_id",
+	// 		name: ddgSearchTool.name,
+	// 		type: "tool_call",
+	// 	};
+	// 	console.log(await ddgSearchTool.invoke(modelGeneratedToolCall));
+	// }
+}
+
+//プロンプトテンプレートの設定
 const promptTemplate = `
     以下の質問に答えてください:
-    
+
     質問: {input}
     考え中: {agent_scratchpad}
     アクション: {tools}
@@ -26,58 +46,34 @@ const promptTemplate = `
 `;
 
 // ReAct Agentの設定(ツールを選ぶ)
-async function initializeAgent() {
+async function createAgent() {
 	const reactAgent = await createReactAgent({
-		llm: geminiLlm,
-		tools: [ddgSearchTool],
-		prompt: promptTemplate, // プロンプトテンプレートを指定
-		inputVariables: ["query"], // プロンプトで使用される変数を指定
-		validateResponses: true, // 生成された回答の検証
+		geminiLlm,
+		ddgSearchTool,
 	});
 	return reactAgent;
 }
 
 // Web検索を行う関数
 async function getCompanyInfo(companyName, comQuestion) {
+	const reactAgent = await createAgent(); // エージェントの初期化
 	const results = {};
-	const comQuestionArray = comQuestion.split('  '); // 二重スペースで分割
-	const reactAgent = await initializeAgent(); // エージェントの初期化
 
-	for (const questionItem of comQuestionArray) {
-		const fullQuery = `${companyName} ${questionItem}`; // 会社名と質問事項を合わせる
+	// 各質問について検索を行う
+	for (const query of comQuestion) {
+		const fullQuery = `${companyName} ${query}`; // 会社名と質問を組み合わせる
 		try {
-			// Web検索を実行
 			console.log(`Running query: ${fullQuery}`);
-			const initialResult = await reactAgent.run({ query: fullQuery });
-			console.log(`Initial result:`, initialResult);
-
-			// 検索結果の検証（他のソースや追加クエリで確認）
-			const validationQuery = `${companyName} ${questionItem} verification`;
-			console.log(`Running validation for: ${validationQuery}`);
-			const validationResults = await reactAgent.run({ query: validationQuery });
-			console.log(`Validation results:`, validationResults);
-
-			// 結果が配列であるか確認し、エラーを防止
-			if (Array.isArray(validationResults) && Array.isArray(initialResult)) {
-				results[questionItem] = {
-					initialResult: initialResult,
-					validationResults: validationResults,
-					isValid: validationResults.includes(initialResult)
-				};
-			} else {
-				results[questionItem] = {
-					initialResult: initialResult,
-					validationResults: validationResults,
-					isValid: false // 配列でない場合はエラーとして処理
-				};
-			}
+			const searchResult = await reactAgent.run({ query: fullQuery });
+			console.log(`Result for ${query}:`, searchResult);
+			results[query] = searchResult; // 結果を保存
 		} catch (error) {
 			console.error(`Error processing query ${fullQuery}:`, error);
-			results[questionItem] = { error: `Error retrieving or validating information for ${questionItem}` };
+			results[query] = `Error retrieving information for ${query}`;
 		}
 	}
-	console.log(`result:`, results);
-	return results;
+
+	return results; // 取得した情報を返す
 }
 
-module.exports = { getCompanyInfo };
+module.exports = { getCompanyInfo, duckTest };
