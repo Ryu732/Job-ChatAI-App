@@ -6,7 +6,7 @@ const router = express.Router();
 require('dotenv').config();
 const { insertDB } = require('../middlewares/db'); // データベースモジュールをインポート
 const { checkToken } = require('../middlewares/auth'); // 認証ミドルウェアをインポート
-const { getCompanyInfo, duckTest } = require('../middlewares/websearch_com'); // 認証ミドルウェアをインポート
+const { getCompanyInfo } = require('../middlewares/websearch_com'); // 認証ミドルウェアをインポート
 
 
 // APIキーやモデルの設定などGeminiの準備

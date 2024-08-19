@@ -1,87 +1,63 @@
 // 会社検索等の関数
 const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
-const { initializeAgentExecutor } = require("langchain/agents");
+const { initializeAgentExecutorWithOptions } = require("langchain/agents");
 const { PromptTemplate } = require("@langchain/core/prompts");
 const { DuckDuckGoSearch } = require("@langchain/community/tools/duckduckgo_search");
+const { BingSerpAPI } = require("@langchain/community/tools/bingserpapi");
 
 // APIキーやモデルの設定などGeminiの準備
 const geminiLlm = new ChatGoogleGenerativeAI({
 	model: "gemini-1.5-flash",
 	apiKey: process.env.Gemini_Key,
-	temperature: 0.1, // 創造性(1が最大)
+	temperature: 0, // 創造性(1が最大)
 	maxRetries: 2,    // 最大再試行回数
 });
 
 // 検索エンジンDuckDuckGoの設定
-const ddgSearchTool = new DuckDuckGoSearch({ maxResults: 1 });
-
-// テスト用の関数
-async function duckTest(companyName, comQuestion) {
-
-	const comQuestionArray = comQuestion.split('  '); // 二重スペースで分割
-	for (const questionItem of comQuestionArray) {
-		const fullQuery = `${companyName} ${questionItem}`; // 会社名と質問事項を合わせる
-		console.log(`Running query: ${fullQuery}`);
-		const modelGeneratedToolCall = {
-			args: {
-				input: fullQuery,
-			},
-			id: "tool_call_id",
-			name: ddgSearchTool.name,
-			type: "tool_call",
-		};
-		console.log(await ddgSearchTool.invoke(modelGeneratedToolCall));
-	}
-}
+const ddgSearchTool = new DuckDuckGoSearch({ maxResults: 5 });
+const bingSearchTool = new BingSerpAPI({ apiKey: process.env.Bing_Key, maxResults: 5 });
 
 // プロンプトテンプレートの設定
 const promptTemplate = new PromptTemplate({
-	template: `
-        以下の質問に答えてください:
-
-        質問: {input}
-        考え中: {agent_scratchpad}
-        アクション: {tool_names}
-        アクションの入力: {tools}
-        最終回答: {final_answer}
-    `,
-	inputVariables: ["input", "agent_scratchpad", "tool_names", "tools", "final_answer"]
+	template: `あなたは就活アドバイザーです。
+    {companyName}という会社について詳しく調査し、以下の複数の質問事項について、それぞれ情報を提供してください。
+    質問事項:{question}`,
+	inputVariables: ["companyName", "question"]// プロンプトへの入力変数
 });
 
-// ReAct Agentの設定(ツールを選ぶ)
+// Agentの設定(ツールを選ぶ)
 async function createAgent() {
-	const executor = await initializeAgentExecutor(
-		[ddgSearchTool], // 使用するツール
+	const agentExecutor = await initializeAgentExecutorWithOptions(
+		[bingSearchTool], // 使用するツール
 		geminiLlm,       // 使用するLLM
-		"zero-shot-react-description", // エージェントの種類
-		promptTemplate  // プロンプトテンプレート
-	);
-	return executor;
-}
-
-// // Web検索を行う関数
-async function getCompanyInfo(companyName, comQuestion) {
-	const agentExecutor = await createAgent(); // エージェントの初期化
-	const comQuestionArray = comQuestion.split('  '); // 質問事項を分割
-	let htmlResult = `<h2>${companyName}</h2>`;
-
-	for (const questionItem of comQuestionArray) {
-		const fullQuery = `${companyName} ${questionItem}`; // 会社名と質問事項を合わせる
-		console.log(`Running query: ${fullQuery}`);
-		try {
-			const initialResult = await agentExecutor.call({ input: fullQuery });
-
-			// オブジェクトから出力結果を取り出して表示
-			const resultText = initialResult?.output || JSON.stringify(initialResult);
-
-			htmlResult += `<h3>${questionItem}</h3><p>${resultText}</p>`;
-		} catch (error) {
-			console.error(`Error processing query ${fullQuery}:`, error);
-			htmlResult += `<h3>${questionItem}</h3><p>情報を取得できませんでした</p>`;
+		{
+			agentType: "zero-shot-react-description", // エージェントの種類
+			verbose: true, // ログを出力
+			maxRetries: 2, // 最大再試行回数
 		}
-	}
-
-	return htmlResult;
+	);
+	return agentExecutor;
 }
 
-module.exports = { getCompanyInfo, duckTest };
+// Web検索を行い、結果をHTML形式で返す関数
+async function getCompanyInfo(companyName, comQuestions) {
+	const agentExecutor = await createAgent(); // エージェントの初期化
+	let htmlResult = `<h2>${companyName}</h2>`; // HTMLの初期化
+
+	// 各質問事項に対して検索を実行
+	const searchQuery = `"${comQuestions}" site:.jp OR site:job.rikunabi.com/2026`;
+	const fullQuery = await promptTemplate.format({ companyName, question: searchQuery });
+
+	try {
+		const initialResult = await agentExecutor.call({ input: fullQuery });
+
+		// オブジェクトから出力結果を取り出して表示
+		const resultText = initialResult?.output || JSON.stringify(initialResult);
+		console.log(resultText);
+	} catch (error) {
+		console.error(`Error processing query ${fullQuery}:`, error);
+	}
+	return htmlResult; // 完成したHTMLを返す
+}
+
+module.exports = { getCompanyInfo };

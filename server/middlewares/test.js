@@ -1,6 +1,6 @@
 // 会社検索等の関数
 const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
-const { AgentExecutor, createReactAgent } = require("langchain/agents");
+const { initializeAgentExecutorWithOptions } = require("langchain/agents");
 const { PromptTemplate } = require("@langchain/core/prompts");
 const { DuckDuckGoSearch } = require("@langchain/community/tools/duckduckgo_search");
 
@@ -17,27 +17,36 @@ const ddgSearchTool = new DuckDuckGoSearch({ maxResults: 1 });
 
 // プロンプトテンプレートの設定
 const promptTemplate = new PromptTemplate({
-	template: `{companyName}の{question}について教えてください。可能な限り最新のデータを用いて回答してください。`,
-	inputVariables: ["companyName", "question"]
+	template: `あなたは就活アドバイザーです。
+    {companyName}の{question}について教えてください。
+    可能な限り最新のデータを用いて回答してください。`,
+	inputVariables: ["companyName", "question"] // プロンプトへの入力変数
 });
 
 // ReAct Agentの設定(ツールを選ぶ)
 async function createAgent() {
-	const executor = await initializeAgentExecutor(
+	const agentExecutor = await initializeAgentExecutorWithOptions(
 		[ddgSearchTool], // 使用するツール
 		geminiLlm,       // 使用するLLM
-		"self-ask-with-search", // エージェントの種類(内部推論)
-		promptTemplate  // プロンプトテンプレート
+		{
+			agentType: "zero-shot-react-description", // エージェントの種類
+			verbose: true, // ログを出力
+			maxRetries: 2, // 最大再試行回数
+		}
 	);
-	return executor;
+	return agentExecutor;
 }
 
-// // Web検索を行う関数
-async function test(companyName, comQuestion) {
-	const comQuestionArray = comQuestion.split('  '); // 質問事項を分割
+// Web検索を行い、結果をHTML形式で返す関数
+async function getCompanyInfo(companyName, comQuestions) {
+	const agentExecutor = await createAgent(); // エージェントの初期化
+	const comQuestionArray = comQuestions.split('  '); // 質問事項を分割
+	let htmlResult = `<h2>${companyName}</h2>`; // HTMLの初期化
+
+	// 各質問事項に対して検索を実行
 	for (const questionItem of comQuestionArray) {
-		const fullQuery = `${companyName} ${questionItem}`; // 会社名と質問事項を合わせる
-		console.log(`Running query: ${fullQuery}`);
+		const fullQuery = await promptTemplate.format({ companyName, question: questionItem });
+
 		try {
 			const initialResult = await agentExecutor.call({ input: fullQuery });
 
@@ -50,4 +59,8 @@ async function test(companyName, comQuestion) {
 			htmlResult += `<h3>${questionItem}</h3><p>情報を取得できませんでした</p>`;
 		}
 	}
+
+	return htmlResult; // 完成したHTMLを返す
 }
+
+module.exports = { getCompanyInfo };
