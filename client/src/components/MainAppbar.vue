@@ -20,7 +20,7 @@
 				ログアウト
 			</v-btn>
 
-			<v-btn>
+			<v-btn :to="{ name: 'home' }">
 				<v-icon left>
 					mdi-home
 				</v-icon>
@@ -32,10 +32,17 @@
 		</v-app-bar-title>
 
 		<template v-slot:prepend>
-			<v-app-bar-nav-icon></v-app-bar-nav-icon>
+			<v-app-bar-nav-icon @click.stop="navi = !navi"></v-app-bar-nav-icon>
 		</template>
 
 	</v-app-bar>
+	<v-navigation-drawer v-model="navi">
+		<v-list>
+			<v-list-item title="Homeに戻る" @click="router.push('/'); navi = false"></v-list-item>
+			<v-list-item title="会社検索" @click="router.push('/com_question'); navi = false"></v-list-item>
+			<v-list-item title="ES作成" @click="router.push('/es'); navi = false"></v-list-item>
+		</v-list>
+	</v-navigation-drawer>
 
 	<!-- ログインダイアログ-->
 	<v-dialog v-model="loginDialog" persistent max-width="30em">
@@ -110,9 +117,11 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useAuthStore } from '@/stores/authstore';
+import { useRouter } from 'vue-router'
 import axios from 'axios';
 
 const authStore = useAuthStore();
+const router = useRouter();
 
 const islogin = computed(() => authStore.isAuth);//ログインしているかどうか
 const username = computed(() => authStore.userId);//ログイン中のユーザー名
@@ -120,6 +129,7 @@ const username = computed(() => authStore.userId);//ログイン中のユーザ�
 const loginDialog = ref(false);//ログインダイアログの送信中
 const singupDialog = ref(false);//サインアップダイアログの送信中
 const logoutDialog = ref(false);//サインアップダイアログの送信中
+const navi = ref(false);//ナビゲーションバーの表示
 const loginID = ref('');
 const loginPass = ref('');
 

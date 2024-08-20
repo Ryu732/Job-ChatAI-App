@@ -3,11 +3,17 @@
 <template>
 	<div class="chat-container">
 		<div class="chat-out">
-			<div v-for="message in AIResMessages" :key="message.id" class="chat-message">
-				<h3>{{ message.CompanyName }}</h3>
-				<h4>{{ message.choiceCheckList }}</h4>
-				{{ message.AIRestext }}
-			</div>
+			<v-expansion-panels v-model="isShowMessage" multiple>
+				<v-expansion-panel v-for="message in AIResMessages" :key="message.id" class="chat-message">
+					<v-expansion-panel-title>
+						<h3>{{ message.CompanyName }}</h3>
+					</v-expansion-panel-title>
+					<v-expansion-panel-text>
+						<h4>{{ message.choiceCheckList }}</h4>
+						<p>{{ message.AIRestext }}</p>
+					</v-expansion-panel-text>
+				</v-expansion-panel>
+			</v-expansion-panels>
 		</div>
 		<v-form @submit.prevent="sendAI" class="input-form">
 			<v-text-field v-model="inputText" label="企業の名前を入力" :disabled="isSubmit" class="text-input"
@@ -36,8 +42,9 @@ const AIResMessages = ref([// チャット画面に表示させる情報
 		CompanyName: 'AIの入力がここに記述されます',
 		choiceCheckList: '左の項目から選んで、会社名を送信してください',
 		AIRestext: '',
-	},
+	}
 ]);
+const isShowMessage = ref([0]);// チャットの表示非表示
 
 // 入力した会社名を送るエンドポイント
 const baseURL = process.env.VUE_APP_SERVER_BASEURL;
@@ -69,8 +76,9 @@ async function sendAI() {
 				id: AIResMessages.value.length + 1,
 				CompanyName: inputText.value,
 				choiceCheckList: response.data.checkText,
-				AIRestext: response.data.resultText
+				AIRestext: response.data.resultText,
 			});
+			isShowMessage.value.push(AIResMessages.value.length);// チャットのトグル表示を設定
 			await nextTick();// DOMの更新待ち
 			scrollToBottom();// チャットのスクロール
 		})
@@ -105,6 +113,10 @@ async function loginChat() {
 						AIRestext: doc.AIRestext,
 					});
 				}
+				// チャットのトグル表示を設定(最新5件を表示)
+				for (let i = AIResMessages.value.length - 5; i < AIResMessages.value.length; i++) {
+					isShowMessage.value.push(i);
+				}
 				await nextTick();// DOMの更新待ち
 				scrollToBottom();// チャットのスクロール
 			})
@@ -124,7 +136,7 @@ async function loginChat() {
 }
 
 .chat-out {
-	background-color: #e0e0e0;
+	background-color: #ecedee;
 	flex: 1;
 	overflow-y: auto;
 	padding: 1em;
@@ -133,7 +145,7 @@ async function loginChat() {
 }
 
 .chat-message {
-	background-color: rgb(197, 196, 196);
+	background-color: #ece9e9;
 	padding: 1em;
 	margin-bottom: 0.5em;
 	border-radius: 0.5em;
