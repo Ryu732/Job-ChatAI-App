@@ -48,6 +48,7 @@ const router = useRouter();
 .v-main {
 	margin-top: 5em;
 	height: calc(100vh - 5em);
+	background-color: #f8f9fa;
 }
 
 .home_title {
