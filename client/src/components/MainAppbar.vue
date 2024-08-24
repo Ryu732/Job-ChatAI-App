@@ -28,7 +28,7 @@
 		</template>
 
 		<v-app-bar-title>
-			Application
+			{{ pageTitle }}
 		</v-app-bar-title>
 
 		<template v-slot:prepend>
@@ -115,13 +115,32 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useAuthStore } from '@/stores/authstore';
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios';
 
 const authStore = useAuthStore();
 const router = useRouter();
+const route = useRoute();
+
+const pageTitle = ref('就活アプリ');//現在使用中の機能の表示
+watch(route, (newRoute) => {//ルートの変更時にページタイトルを変更
+	switch (newRoute.name) {
+		case 'home':
+			pageTitle.value = 'ホーム';
+			break;
+		case 'com_question':
+			pageTitle.value = '会社検索';
+			break;
+		case 'es':
+			pageTitle.value = 'ES作成';
+			break;
+		default:
+			pageTitle.value = 'Application';
+			break;
+	}
+}, { immediate: true });
 
 const islogin = computed(() => authStore.isAuth);//ログインしているかどうか
 const username = computed(() => authStore.userId);//ログイン中のユーザー名

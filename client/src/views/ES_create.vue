@@ -14,7 +14,9 @@
 						<div class="chat-out">
 							<div v-for="message in messages" :key="message.id" class="chat-message"
 								:class="{ 'user_hilight': message.sender === 'user' }">
-								<p>{{ message.chatText }}</p>
+								<v-icon v-if="message.sender === 'AI'">mdi-robot</v-icon>
+								<v-icon v-else>mdi-account-circle</v-icon>
+								<p v-html="message.chatText"></p>
 							</div>
 						</div>
 						<v-form @submit.prevent="sendAI" class="input-form">
@@ -50,7 +52,7 @@ const messages = ref([// チャット画面に表示させる情報
 	},
 	{
 		id: 3,
-		chatText: '了解しました',// チャットの内容
+		chatText: '了解しました。<br>どのようなエントリーシートをご希望でしょうか？',// チャットの内容
 		sender: 'AI',// 送信者
 	},
 ]);
@@ -79,9 +81,8 @@ async function sendAI() {
 			// チャット欄に返信内容を追加
 			messages.value.push({
 				id: messages.value.length + 1,
-				CompanyName: inputText.value,
-				choiceCheckList: response.data.checkText,
-				AIRestext: response.data.resultText
+				chatText: response.data.chatText,
+				sender: 'AI',
 			});
 			await nextTick();// DOMの更新待ち
 			scrollToBottom();// チャットのスクロール
@@ -134,6 +135,7 @@ function scrollToBottom() {
 	max-width: 70%;
 	white-space: pre-wrap;
 	word-wrap: break-word;
+	line-height: 1.75em;
 	align-self: flex-start;
 }
 
