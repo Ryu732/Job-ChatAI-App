@@ -2,11 +2,28 @@
 	<v-main>
 		<v-container fluid fill-height class="main-content">
 			<v-row class="fill-height">
-				<v-col cols="12" md="2" class="fill-height modeChoice">
-					<v-radio-group v-model="esMode">
-						<v-radio label="学生時代頑張ったこと" value="schooldays"></v-radio>
-						<v-radio label="自己PR" value="pr"></v-radio>
-					</v-radio-group>
+				<v-col cols="12" md="2" class="modeChoice">
+					<div class="fill-height">
+						<div class="esSettings">
+							<p> エントリーシートの内容 *</p>
+							<v-select :items="esMode" v-model="esModeSelect" :disabled="isModeLock"></v-select>
+						</div>
+						<div class="esSettings">
+							<p>文字数 *</p>
+							<v-text-field v-model="esLength" type="number" :disabled="isModeLock"></v-text-field>
+						</div>
+						<div class="esSettings">
+							<p>会社名</p>
+							<v-text-field persistent-placeholder placeholder="〇〇株式会社 なくてもOK" v-model="esCompany"
+								:disabled="isModeLock"></v-text-field>
+						</div>
+						<div class="esSettings">
+							<p>会社からの質問内容</p>
+							<v-text-field persistent-placeholder placeholder="コピペしてね！ なくてもOK" v-model="esQuestion"
+								:disabled="isModeLock"></v-text-field>
+						</div>
+						<v-btn @click="sendSettings">ESの設定をAIに読み込む</v-btn>
+					</div>
 					<v-btn class="historyBtn">過去の履歴</v-btn>
 				</v-col>
 				<v-col cols="12" md="10" class="fill-height">
@@ -16,6 +33,7 @@
 								:class="{ 'user_hilight': message.sender === 'user' }">
 								<v-icon v-if="message.sender === 'AI'">mdi-robot</v-icon>
 								<v-icon v-else>mdi-account-circle</v-icon>
+
 								<p v-html="message.chatText"></p>
 							</div>
 						</div>
@@ -36,13 +54,23 @@ import { ref, nextTick } from 'vue';
 //import { useAuthStore } from '@/stores/authstore';
 import axios from 'axios';
 
-const esMode = ref(null);//選択中のESモード
+const esMode = ref([
+	'学生時代頑張ったこと',
+	'自己PR',
+	'長所、短所について',
+]);
+const esModeSelect = ref(null);//選択中のESモード
+const esLength = ref(null);// ESの文字数
+const esCompany = ref(null);// 会社名
+const esQuestion = ref(null);// ESで聞かれている質問
+
+const isModeLock = ref(false);// ESモードの選択をロックするかどうか
 
 const inputText = ref('');// ユーザーから入力される会社名
 const messages = ref([// チャット画面に表示させる情報
 	{
 		id: 1,
-		chatText: 'こんにちは',// チャットの内容
+		chatText: 'こんにちは<br>一緒にエントリーシートを考えましょう<br>左側の欄を入力して、送信ボタンを押してください',// チャットの内容
 		sender: 'AI',// 送信者
 	},
 	{
@@ -58,22 +86,40 @@ const messages = ref([// チャット画面に表示させる情報
 ]);
 
 // 入力した会社名を送るエンドポイント
-//const baseURL = process.env.VUE_APP_SERVER_BASEURL;
+const baseURL = process.env.VUE_APP_SERVER_BASEURL;
 
 const isSubmit = ref(false);// バックエンドに送信中かどうか
 
-// バックエンドへ生成AIのAPIを送受信
-async function sendAI() {
+//サーバーにES設定を送信
+async function sendSettings() {
 	// 入力内容が空かどうかチェック
-	if (esMode.value == null) {
-		alert('左側からどんなエントリーシートを書くか選択してください');
+	if (esModeSelect.value == null) {
+		alert('左側で、どんなエントリーシートを書くか選択してください');
 		return;
-	} else if (inputText.value.trim() === '') {
+	} else if (esLength.value == null) {
+		alert('文字数を入力してください');
+		return;
+	}
+
+	isModeLock.value = true;// ESモードの選択をロックする
+
+	const esSettings = {//考えたいESの設定
+		esMode: esModeSelect.value,
+		esLength: esLength.value,
+		esCompany: esCompany.value,
+		esQuestion: esQuestion.value,
+	};
+}
+
+// サーバーに、AIとの会話文を送受信
+async function sendAI() {
+	if (inputText.value.trim() === '') {
 		alert('テキストが入力されていません');
 		return;
 	}
 
 	isSubmit.value = true;// フォーム送信中をオンにする
+
 
 	// axiosを利用して、バックエンドへのデータの送受信
 	await axios.post()
@@ -88,7 +134,7 @@ async function sendAI() {
 			scrollToBottom();// チャットのスクロール
 		})
 		.catch(error => {
-			alert('データの取得に失敗しました。再度お試しください', error);
+			alert('データの取得に失敗しました。再度同じ文章を入力してください。', error);
 		});
 
 	isSubmit.value = false;// フォーム送信中をオンにする
@@ -186,5 +232,9 @@ function scrollToBottom() {
 	margin-bottom: 1.5em;
 	width: 100%;
 	align-self: flex-end;
+}
+
+.esSettings {
+	margin: 1em 0;
 }
 </style>

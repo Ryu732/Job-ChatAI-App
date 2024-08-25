@@ -124,7 +124,7 @@ const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
-const pageTitle = ref('就活アプリ');//現在使用中の機能の表示
+const pageTitle = ref();//現在使用中の機能の表示
 watch(route, (newRoute) => {//ルートの変更時にページタイトルを変更
 	switch (newRoute.name) {
 		case 'home':
@@ -137,7 +137,7 @@ watch(route, (newRoute) => {//ルートの変更時にページタイトルを�
 			pageTitle.value = 'ES作成';
 			break;
 		default:
-			pageTitle.value = 'Application';
+			pageTitle.value = '就活アプリ';
 			break;
 	}
 }, { immediate: true });

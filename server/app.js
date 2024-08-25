@@ -46,4 +46,12 @@ app.use(function (err, req, res, next) {
 	res.render('error');
 });
 
-module.exports = app;
+// HTTPサーバーとSocket.ioの設定
+const http = require('http');
+const { Server } = require('socket.io');
+const server = http.createServer(app);
+const io = new Server(server);
+
+require('./io-event/eschat-event')(io);//eschat-event.jsを読み込む
+
+module.exports = { app, server };  // appとserverの両方をエクスポート

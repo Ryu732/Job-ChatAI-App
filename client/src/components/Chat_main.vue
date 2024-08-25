@@ -78,7 +78,7 @@ async function sendAI() {
 				choiceCheckList: response.data.checkText,
 				AIRestext: response.data.resultText,
 			});
-			isShowMessage.value.push(AIResMessages.value.length);// チャットのトグル表示を設定
+			isShowMessage.value.push(AIResMessages.value.length + 1);// チャットのトグル表示を設定
 			await nextTick();// DOMの更新待ち
 			scrollToBottom();// チャットのスクロール
 		})
