@@ -20,15 +20,16 @@ const bingSearchTool = new BingSerpAPI({ apiKey: process.env.Bing_Key, maxResult
 // プロンプトテンプレートの設定
 const promptTemplate = new PromptTemplate({
 	template: `あなたは就活アドバイザーです。
-    {companyName}という会社について詳しく調査し、以下の複数の質問事項について、それぞれ情報を提供してください。
-    質問事項:{question}`,
+    {companyName}という会社について調査し、以下の質問事項について、それぞれ2024年より後の情報を提供してください。
+	Web検索する際は、信頼できる情報源（公式サイト、ニュース、業界レポートなど）から調べてください。
+    質問事項:従業員数`,
 	inputVariables: ["companyName", "question"]// プロンプトへの入力変数
 });
 
 // Agentの設定(ツールを選ぶ)
 async function createAgent() {
 	const agentExecutor = await initializeAgentExecutorWithOptions(
-		[bingSearchTool], // 使用するツール
+		[bingSearchTool,], // 使用するツール
 		geminiLlm,       // 使用するLLM
 		{
 			agentType: "zero-shot-react-description", // エージェントの種類
@@ -45,8 +46,7 @@ async function getCompanyInfo(companyName, comQuestions) {
 	let htmlResult = `<h2>${companyName}</h2>`; // HTMLの初期化
 
 	// 各質問事項に対して検索を実行
-	const searchQuery = `"${comQuestions}" site:.jp OR site:job.rikunabi.com/2026`;
-	const fullQuery = await promptTemplate.format({ companyName, question: searchQuery });
+	const fullQuery = await promptTemplate.format({ companyName, question: comQuestions });
 
 	try {
 		const initialResult = await agentExecutor.call({ input: fullQuery });

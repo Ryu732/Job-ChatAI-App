@@ -30,7 +30,7 @@
 					<div class="chat-container">
 						<div class="chat-out">
 							<div v-for="message in messages" :key="message.id" class="chat-message"
-								:class="{ 'user_hilight': message.sender === 'user' }">
+								:class="{ 'user_hilight': message.sender === 'human' }">
 								<v-icon v-if="message.sender === 'AI'">mdi-robot</v-icon>
 								<v-icon v-else>mdi-account-circle</v-icon>
 
@@ -76,7 +76,7 @@ const messages = ref([// チャット画面に表示させる情報
 	{
 		id: 2,
 		chatText: 'ES作りたい!',// チャットの内容
-		sender: 'user',// 送信者
+		sender: 'human',// 送信者
 	},
 	{
 		id: 3,
@@ -87,6 +87,7 @@ const messages = ref([// チャット画面に表示させる情報
 
 // 入力した会社名を送るエンドポイント
 const baseURL = process.env.VUE_APP_SERVER_BASEURL;
+const ESCreateURL = `${baseURL}/escreate`;
 
 const isSubmit = ref(false);// バックエンドに送信中かどうか
 
@@ -109,6 +110,19 @@ async function sendSettings() {
 		esCompany: esCompany.value,
 		esQuestion: esQuestion.value,
 	};
+
+	await axios.post(`${ESCreateURL}/setting`, esSettings)
+		.then(async response => {
+			// チャット欄に返信内容を追加
+			messages.value.push({
+				id: messages.value.length + 1,
+				chatText: response.data.chatText,
+				sender: 'AI',
+			});
+		})
+		.catch(error => {
+			alert('データの取得に失敗しました。再度ESの設定を送信してください', error);
+		});
 }
 
 // サーバーに、AIとの会話文を送受信

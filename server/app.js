@@ -8,6 +8,7 @@ const cors = require('cors');
 const usersRouter = require('./routes/users');
 const geminiRouter = require('./routes/gemini');
 const getPastdbRouter = require('./routes/getpastdb');
+const escreate = require('./routes/escreate');
 
 const app = express();
 
@@ -26,6 +27,8 @@ app.use(express.static(path.join(__dirname, '../client/public')));
 app.use('/users', usersRouter);
 app.use('/gemini', geminiRouter);
 app.use('/getpastdb', getPastdbRouter);
+app.use('/escreate', escreate);
+
 
 app.get('*', (req, res) => {
 	res.sendFile(path.join(__dirname, '../client/public', 'index.html'));

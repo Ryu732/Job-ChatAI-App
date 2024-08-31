@@ -44,7 +44,7 @@ router.post('/', async (req, res) => {
 		const checkText = await pickCheckText(req.body.checkList);// 聞きたい項目を一つの文字列にしたやつ
 		const username = await checkToken(req.cookies.authToken);// ヘッダーのトークンを渡して、認証されたユーザーネームを受け取る
 
-		console.log(await getCompanyInfo(req.body.inputText, checkText));
+		console.log(await getCompanyInfo(req.body.inputText, req.body.checkList));
 		const resultText = await sendGemini(req.body.inputText, checkText);
 
 		const saveQuery = {
@@ -52,7 +52,7 @@ router.post('/', async (req, res) => {
 			choiceCheckList: checkText,
 			AIRestext: resultText
 		};
-		if (username !== null) {// ユーザーネームが空じゃないなら
+		if (username !== null) {// ユーザーネームが空じゃないなら(ログインしているなら)
 			// ファイル保存のルートにリクエストを送信
 			await insertDB(username, 'comQuestion', saveQuery);// 引数 dbName:DB名 collectionName:コレクション名 saveQuery:保存したい内容(JSON)
 		}
