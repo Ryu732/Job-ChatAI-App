@@ -6,11 +6,10 @@
 			<v-expansion-panels v-model="isShowMessage" multiple>
 				<v-expansion-panel v-for="message in AIResMessages" :key="message.id" class="chat-message">
 					<v-expansion-panel-title>
-						<h3>{{ message.CompanyName }}</h3>
+						<h1>{{ message.CompanyName }}</h1>
 					</v-expansion-panel-title>
 					<v-expansion-panel-text>
-						<h4>{{ message.choiceCheckList }}</h4>
-						<p>{{ message.AIRestext }}</p>
+						<div v-html="message.AIRestext"></div>
 					</v-expansion-panel-text>
 				</v-expansion-panel>
 			</v-expansion-panels>
@@ -78,7 +77,7 @@ async function sendAI() {
 				choiceCheckList: response.data.checkText,
 				AIRestext: response.data.resultText,
 			});
-			isShowMessage.value.push(AIResMessages.value.length + 1);// チャットのトグル表示を設定
+			isShowMessage.value.push(AIResMessages.value.length - 1);// チャットのトグル表示を設定
 			await nextTick();// DOMの更新待ち
 			scrollToBottom();// チャットのスクロール
 		})

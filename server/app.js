@@ -22,7 +22,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(cors());
-app.use(express.static(path.join(__dirname, '../client/public')));
+app.use(express.static(path.join(__dirname, '../client/public/dist')));
 
 app.use('/users', usersRouter);
 app.use('/gemini', geminiRouter);
@@ -31,7 +31,7 @@ app.use('/escreate', escreate);
 
 
 app.get('*', (req, res) => {
-	res.sendFile(path.join(__dirname, '../client/public', 'index.html'));
+	res.sendFile(path.join(__dirname, '../client/public/dist', 'index.html'));
 });
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

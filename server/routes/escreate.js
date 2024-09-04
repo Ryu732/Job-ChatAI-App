@@ -56,9 +56,10 @@ router.get('/', async (req, res) => {
 
 			// DBからESの設定を取得
 
-			//DBからこれまでの会話を取得
+			// DBからこれまでの会話を取得
 
 			// ユーザーの送信内容をAIに送信して、返答を保存
+			// 関数の引数には、ESの設定、これまでの会話、ユーザーの送信内容を渡す(未設定)
 			const AIChatText = await esCreateChat();
 			res.json(AIChatText);
 		}

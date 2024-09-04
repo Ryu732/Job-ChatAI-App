@@ -17,19 +17,15 @@ const geminiLlm = new ChatGoogleGenerativeAI({
 const bingSearchTool = new BingSerpAPI({ apiKey: process.env.Bing_Key, maxResults: 5 });
 
 // エージェントが使うツールを設定
-const tools = [new Tool({
+const tools = [{
 	name: "bingseach",
 	description: "Web上から検索するときに使うツールです。最新の情報などを取得できます。",
 	func: bingSearchTool,
-}),
-new Tool({
+}, {
 	name: "countString",
 	description: "文字数を数えるツールです。生成した文章の文字数を数えるときに使います。",
-	func: function (str) {
-		return str.length;
-	},
-}),
-];
+	func: function (str) { return str.length; },
+},];
 
 // プロンプトテンプレートの設定
 const promptTemplate = new PromptTemplate({

@@ -33,7 +33,7 @@ async function sendGemini(inputText, checkText) {
 function pickCheckText(checkList) {
 	let totalCheckText = '';
 	for (const items of checkList) {
-		totalCheckText += items.checkText + '  ';
+		totalCheckText += items + '  ';
 	}
 	return totalCheckText;
 }
@@ -44,8 +44,7 @@ router.post('/', async (req, res) => {
 		const checkText = await pickCheckText(req.body.checkList);// 聞きたい項目を一つの文字列にしたやつ
 		const username = await checkToken(req.cookies.authToken);// ヘッダーのトークンを渡して、認証されたユーザーネームを受け取る
 
-		console.log(await getCompanyInfo(req.body.inputText, req.body.checkList));
-		const resultText = await sendGemini(req.body.inputText, checkText);
+		const resultText = await getCompanyInfo(req.body.inputText, req.body.checkList);
 
 		const saveQuery = {
 			CompanyName: req.body.inputText,

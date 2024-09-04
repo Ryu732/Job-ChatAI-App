@@ -19,16 +19,18 @@ const emit = defineEmits(['send-data']);
 
 const checkList = ref([
 	{ id: 1, checkText: '企業概要', ischeck: false },
-	{ id: 2, checkText: '従業員数', ischeck: true },
-	{ id: 3, checkText: '主な事業', ischeck: false },
+	{ id: 2, checkText: '事業拠点', ischeck: false },
+	{ id: 3, checkText: '主な事業', ischeck: true },
 	{ id: 4, checkText: '関連企業', ischeck: false },
 	{ id: 5, checkText: '上場市場', ischeck: true },
-	{ id: 6, checkText: '社長挨拶', ischeck: false },
-	{ id: 7, checkText: '業界内での立ち位置と競合他社', ischeck: false },
+	{ id: 6, checkText: '子会社とその事業', ischeck: false },
+	{ id: 7, checkText: '競合他社', ischeck: false },
 ]);
 
 function sendIsCheckList() {
-	const checkItems = checkList.value.filter(item => item.ischeck);
+	const checkItems = checkList.value
+		.filter(item => item.ischeck) // ischeckがtrueのものだけ取得
+		.map(item => item.checkText);	// checkTextだけ取得
 	emit('send-data', checkItems);
 }
 
