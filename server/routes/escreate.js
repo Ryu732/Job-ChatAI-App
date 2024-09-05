@@ -21,7 +21,7 @@ router.get('/setting', async (req, res) => {
 		if (username == null) {//ログインしていない場合
 			res.send('ログインしてください');
 		} else {
-			await insertDB(username, 'esSettings', esSettingsObj);// 引数 dbName:DB名 collectionName:コレクション名 esSettings:保存したい内容(JSON)
+			await insertDB(username, 'esCreate', esSettingsObj);// 引数 dbName:DB名 collectionName:コレクション名 esSettings:保存したい内容(JSON)
 
 			//
 			// ここにAIの次の処理を書く
@@ -52,14 +52,15 @@ router.get('/', async (req, res) => {
 				sender: 'human',// 送信者
 				sendDate: new Date(),// 送信の日付
 			};
-			await insertDB(username, 'esCreateLog', insertDoc);// 引数 dbName:DB名 collectionName:コレクション名 esSettings:保存したい内容(JSON)
+			await insertDB(username, 'esCreate', insertDoc);// 引数 dbName:DB名 collectionName:コレクション名 esSettings:保存したい内容(JSON)
 
 			// DBからESの設定を取得
 
 			// DBからこれまでの会話を取得
 
 			// ユーザーの送信内容をAIに送信して、返答を保存
-			// 関数の引数には、ESの設定、これまでの会話、ユーザーの送信内容を渡す(未設定)
+
+			// 関数の引数には、ESの設定、ユーザーの送信内容を渡す(未設定)
 			const AIChatText = await esCreateChat();
 			res.json(AIChatText);
 		}
