@@ -23,7 +23,7 @@
 				<v-col>
 					<v-card @click="router.push('/es')" class="functionList">
 						<v-card-title>
-							<h3>エントリーシート作成</h3>
+							<h3>エントリーシート作成(未完成)</h3>
 						</v-card-title>
 						<v-card-text>
 							<p>ESの作成をAIがサポートしてくれます</p>
@@ -35,7 +35,7 @@
 				<v-col>
 					<v-card class="functionList">
 						<v-card-title>
-							<h3>メモ</h3>
+							<h3>メモ(未完成)</h3>
 						</v-card-title>
 						<v-card-text>
 							<p>就活イベントのメモを作ろう!</p>
