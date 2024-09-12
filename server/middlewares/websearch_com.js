@@ -23,12 +23,14 @@ const promptTemplate = new PromptTemplate({
 	あなたは就活アドバイザーです。
     {companyName}という会社について調査し、以下の質問事項について、それぞれ2024年より後の情報を提供してください。
 	Web検索する際は、信頼できる情報源（公式サイト、ニュース、業界レポートなど）から調べてください。
+	*出力形式は、テキストのみで出力してください*
     
 	# 質問事項:{question}
 	
 	# 出力形式
-	改行は\nで表現してください。
-	記号などは使わずに答えてください。`,
+	**必ず日本語で出力してください**
+	テキストのみを出力する。
+	**必ず日本語で出力してください**`,
 	inputVariables: ["companyName", "question"]// プロンプトへの入力変数
 });
 
@@ -39,7 +41,7 @@ async function createAgent() {
 		geminiLlm,       // 使用するLLM
 		{
 			agentType: "zero-shot-react-description", // エージェントの種類
-			verbose: false, // ログを出力
+			verbose: true, // ログを出力
 			maxRetries: 2, // 最大再試行回数
 		}
 	);
