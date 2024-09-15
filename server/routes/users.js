@@ -82,4 +82,4 @@ router.get('/logout', async (req, res) => {
 	res.clearCookie('userId', { path: '/' });
 	res.json({ success: true, message: 'ログアウトが完了しました' });
 });
-module.exports = router; 
+module.exports = router;
