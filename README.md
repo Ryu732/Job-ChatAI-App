@@ -13,3 +13,11 @@ https://job-chatai-app-41baa47952dc.herokuapp.com
 |       API    | Bing Search API      | Web検索用API |
 |        | Gemini API           | Geminiを使用した文章生成 |
 | ライブラリ     | Langchain.js  | AIのプロンプト作成などに利用 |
+
+## 機能紹介
+- サインアップ/ログイン機能
+- 会社検索機能
+
+## デモ映像(会社検索機能)
+https://github.com/user-attachments/assets/d2f6a623-1708-48d5-8290-04fed63cc026
+
