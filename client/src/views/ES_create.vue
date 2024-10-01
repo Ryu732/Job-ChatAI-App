@@ -9,7 +9,7 @@
 							<v-select :items="esMode" v-model="esModeSelect" :disabled="isModeLock"></v-select>
 						</div>
 						<div class="esSettings">
-							<p>文字数 *</p>
+							<p>文字数上限 *</p>
 							<v-text-field v-model="esLength" type="number" :disabled="isModeLock"></v-text-field>
 						</div>
 						<div class="esSettings">

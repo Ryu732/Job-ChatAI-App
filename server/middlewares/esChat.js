@@ -3,6 +3,7 @@
 const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
 const { initializeAgentExecutorWithOptions } = require("langchain/agents");
 const { PromptTemplate } = require("@langchain/core/prompts");
+const { Tool } = require("langchain/tools");
 const { BingSerpAPI } = require("@langchain/community/tools/bingserpapi");
 
 // APIキーやモデルの設定などGeminiの準備
@@ -16,16 +17,18 @@ const geminiLlm = new ChatGoogleGenerativeAI({
 // 検索エンジンbingの設定
 const bingSearchTool = new BingSerpAPI({ apiKey: process.env.Bing_Key, maxResults: 5 });
 
-// エージェントが使うツールを設定
-const tools = [{
-	name: "bingseach",
-	description: "Web上から検索するときに使うツールです。最新の情報などを取得できます。",
-	func: bingSearchTool,
-}, {
-	name: "countString",
-	description: "文字数を数えるツールです。生成した文章の文字数を数えるときに使います。",
-	func: function (str) { return str.length; },
-},];
+// 文字数を数えるツール
+class CharaCountTool extends Tool {
+	constructor() {
+		super();
+		this.name = "character_count"; // ツールの名前
+		this.description = "与えられたテキストの文字数をカウントします。"; // ツールの説明
+	}
+	async call(input) {
+		const characterCount = input.length;
+		return `${characterCount}文字`;
+	}
+}
 
 // プロンプトテンプレートの設定
 const promptTemplate = new PromptTemplate({
@@ -47,6 +50,8 @@ const promptTemplate = new PromptTemplate({
 		-ESの最高文字数:{textMax}
 		-提出する会社名:{company}
 		-ESの種類:{esMode}
+		-ESで聞かれていること:{esQuestion}
+		-過去の会話内容:{chatLog}
 
 		# 質問手順:
 		1. ユーザーに関連するエピソードを1つ教えてもらう。
@@ -59,30 +64,42 @@ const promptTemplate = new PromptTemplate({
 		# ESの出力形式:
 		--ES:ESの内容
 		--文字数:`,
-	inputVariables: ["textMin", "textMax", "company", "esMode",]// プロンプトへの入力変数
+	inputVariables: ["textMin", "textMax", "company", "esMode", "esQuestion", "chatLog"]// プロンプトへの入力変数
 });
 
 // Agentの設定(ツールを選ぶ)
 async function createAgent() {
-	const agentExecutor = await initializeAgentExecutorWithOptions(
-		tools, // 使用するツール
-		geminiLlm,       // 使用するLLM
-		{
-			agentType: "conversational-react-description", // エージェントの種類
-			verbose: true, // ログを出力
-			maxRetries: 2, // 最大再試行回数
-		}
-	);
-	return agentExecutor;
+	try {
+		const agentExecutor = await initializeAgentExecutorWithOptions(
+			[bingSearchTool, new CharaCountTool()], // 使用するツール
+			geminiLlm,       // 使用するLLM
+			{
+				agentType: "zero-shot-react-description", // エージェントの種類
+				verbose: true, // ログを出力
+				maxRetries: 2, // 最大再試行回数
+			}
+		);
+		return agentExecutor;
+	}
+	catch (error) {
+		console.error(`Error processing query`, error);
+		return "エラーが発生しました。";
+	}
 }
 
 // AIでES作成の会話を生成
-async function esCreateChat(textMax, company, esMode) {
+async function esCreateChat(textMax, company, esMode, esQuestion, chatLog,) {
 	const agentExecutor = await createAgent(); // エージェントの初期化
+
+	// 引数の値がない場合は、デフォルト値を設定
+	company = company || "企業名"; // 企業名
+	esQuestion = esQuestion || "ESで聞かれていること"; // ESで聞かれていること
+	chatLog = chatLog || "これまでの会話なし"; // 過去の会話内容
+
 	const textMin = Math.floor(textMax * 0.8); // 最低文字数(8割り)
 
-	// 各質問事項に対して検索を実行
-	const fullQuery = await promptTemplate.format({ textMin, textMax, company, esMode });
+	// 各変数をプロンプトに埋め込む
+	const fullQuery = await promptTemplate.format({ textMin, textMax, company, esMode, esQuestion, chatLog, });
 
 	// エージェントからの出力文字
 	let AIChatText = "";

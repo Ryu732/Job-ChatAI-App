@@ -2,7 +2,6 @@
 const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
 const { initializeAgentExecutorWithOptions } = require("langchain/agents");
 const { PromptTemplate } = require("@langchain/core/prompts");
-const { DuckDuckGoSearch } = require("@langchain/community/tools/duckduckgo_search");
 const { BingSerpAPI } = require("@langchain/community/tools/bingserpapi");
 
 // APIキーやモデルの設定などGeminiの準備

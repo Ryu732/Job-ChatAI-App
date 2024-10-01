@@ -22,9 +22,9 @@ const checkList = ref([
 	{ id: 2, checkText: '事業拠点', ischeck: false },
 	{ id: 3, checkText: '主な事業', ischeck: true },
 	{ id: 4, checkText: '関連企業', ischeck: false },
-	{ id: 5, checkText: '上場市場', ischeck: true },
+	{ id: 5, checkText: '上場市場', ischeck: false },
 	{ id: 6, checkText: '子会社とその事業', ischeck: false },
-	{ id: 7, checkText: '競合他社', ischeck: false },
+	{ id: 7, checkText: '競合他社', ischeck: true },
 ]);
 
 function sendIsCheckList() {

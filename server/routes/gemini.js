@@ -8,27 +8,6 @@ const { insertDB } = require('../middlewares/db'); // データベースモジ�
 const { checkToken } = require('../middlewares/auth'); // 認証ミドルウェアをインポート
 const { getCompanyInfo } = require('../middlewares/websearch_com'); // 認証ミドルウェアをインポート
 
-
-// APIキーやモデルの設定などGeminiの準備
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const genAI = new GoogleGenerativeAI(process.env.Gemini_Key);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-// Geminiにプロンプトを送信
-async function sendGemini(inputText, checkText) {
-	try {
-		const prompt = inputText + checkText;//入力内容と選択テキストを合わせる
-
-		const result = await model.generateContent(prompt);
-		const response = await result.response;
-		const text = response.text();
-		return (text);
-	} catch (error) {
-		console.error('Error generating content:', error);
-		throw error;
-	}
-}
-
 // チェックリスト配列のテキスト部分のみを抽出して、一つの文字列にする
 function pickCheckText(checkList) {
 	let totalCheckText = '';
