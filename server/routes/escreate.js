@@ -57,7 +57,7 @@ router.get('/', async (req, res) => {
 		} else {
 			//　ユーザーの送信内容をDBに保存
 			const chatHumanObj = {
-				chatText: req.body.UserChatText,// チャット本文
+				chatText: req.body,// チャット本文
 				sender: 'human',// 送信者
 				sendDate: new Date(),// 送信の日付
 			};
@@ -91,9 +91,61 @@ router.get('/', async (req, res) => {
 			res.json(AIChatText);
 		}
 	} catch (error) {
-		res.send('');
+		res.send('会話ができませんでした,再度同じ内容を送信してください');
 	}
 });
 
+// AIとの会話履歴の削除リクエストが来たら、DBの履歴を削除
+// req	なし
+// res	AIChatText:AIの返答テキスト
+router.get('/', async (req, res) => {
+	const token = req.cookies.authToken;// ヘッダーのトークンを取得
+	if (!token) {
+		return res.send('ログインしてください');
+	}
+	try {
+		const username = await checkToken(token);// ヘッダーのトークンを渡して、認証されたユーザーネームを受け取る
+		if (username == null) {//ログインしていない場合
+			res.send('ログインしてください');
+		} else {
+			//　ユーザーの送信内容をDBに保存
+			const chatHumanObj = {
+				chatText: req.body,// チャット本文
+				sender: 'human',// 送信者
+				sendDate: new Date(),// 送信の日付
+			};
+			await insertDB(username, 'esChat', chatHumanObj);// 引数 dbName:DB名 collectionName:コレクション名 esSettings:保存したい内容(JSON)
+
+			// DBからESの設定を取得
+			const esSettings = await getAllDocumentDB(username, 'esSettings');// 引数 DB名, コレクション名
+
+			// DBからこれまでの会話を取得
+			const chatLog = await getAllDocumentDB(username, 'esChat');// 引数 DB名, コレクション名
+
+			// これまでの会話をテキストに変換 (例: "AI:こんにちは\nユーザー:こんにちは")
+			let chatLogText = "";
+			chatLog.forEach((item) => {
+				chatLogText += item.sender + ":" + item.chatText + "\n";
+			});
+
+			// ユーザーの送信内容をAIに送信して、返答を保存
+			// 関数の引数には、ESの設定、これまでの会話を渡す(textMax, company, esMode, esQuestion, chatLog)
+			const AIChatText = await esCreateChat(esSettings.esLength, esSettings.esCompany, esSettings.esMode, esSettings.esQuestion, chatLogText);
+
+			// AIからの返答をDBに保存
+			const chatAIObj = {
+				chatText: AIChatText,// チャット本文
+				sender: 'AI',// 送信者
+				sendDate: new Date(),// 送信の日付
+			};
+			await insertDB(username, 'esChat', chatAIObj);// 引数 dbName:DB名 collectionName:コレクション名 esSettings:保存したい内容(JSON)
+
+			// AIからの返答をレスポンスとして返す
+			res.json(AIChatText);
+		}
+	} catch (error) {
+		res.send('会話ができませんでした,再度同じ内容を送信してください');
+	}
+});
 
 module.exports = router;
