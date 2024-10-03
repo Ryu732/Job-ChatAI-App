@@ -1,7 +1,7 @@
 //ES作成のルーティング
 var express = require('express');
 var router = express.Router();
-const { insertDB, getAllDocumentDB } = require('../middlewares/db'); // DBモジュールをインポート
+const { insertDB, getAllDocumentDB, deleteAllDocumentsDB } = require('../middlewares/db'); // DBモジュールをインポート
 const { checkToken } = require('../middlewares/auth'); // 認証ミドルウェアをインポート
 const { esCreateChat } = require('../middlewares/esChat'); // ES作成ミドルウェアをインポート
 
@@ -95,10 +95,10 @@ router.get('/', async (req, res) => {
 	}
 });
 
-// AIとの会話履歴の削除リクエストが来たら、DBの履歴を削除
+// ES作成履歴の削除リクエストが来たら、DBの履歴を削除
 // req	なし
-// res	AIChatText:AIの返答テキスト
-router.get('/', async (req, res) => {
+// res　text:削除完了のテキスト
+router.delete('/', async (req, res) => {
 	const token = req.cookies.authToken;// ヘッダーのトークンを取得
 	if (!token) {
 		return res.send('ログインしてください');
@@ -108,43 +108,17 @@ router.get('/', async (req, res) => {
 		if (username == null) {//ログインしていない場合
 			res.send('ログインしてください');
 		} else {
-			//　ユーザーの送信内容をDBに保存
-			const chatHumanObj = {
-				chatText: req.body,// チャット本文
-				sender: 'human',// 送信者
-				sendDate: new Date(),// 送信の日付
-			};
-			await insertDB(username, 'esChat', chatHumanObj);// 引数 dbName:DB名 collectionName:コレクション名 esSettings:保存したい内容(JSON)
+			// DBの会話履歴を削除
+			await deleteAllDocumentsDB(username, 'esChat');// 引数 DB名, コレクション名
 
-			// DBからESの設定を取得
-			const esSettings = await getAllDocumentDB(username, 'esSettings');// 引数 DB名, コレクション名
-
-			// DBからこれまでの会話を取得
-			const chatLog = await getAllDocumentDB(username, 'esChat');// 引数 DB名, コレクション名
-
-			// これまでの会話をテキストに変換 (例: "AI:こんにちは\nユーザー:こんにちは")
-			let chatLogText = "";
-			chatLog.forEach((item) => {
-				chatLogText += item.sender + ":" + item.chatText + "\n";
-			});
-
-			// ユーザーの送信内容をAIに送信して、返答を保存
-			// 関数の引数には、ESの設定、これまでの会話を渡す(textMax, company, esMode, esQuestion, chatLog)
-			const AIChatText = await esCreateChat(esSettings.esLength, esSettings.esCompany, esSettings.esMode, esSettings.esQuestion, chatLogText);
-
-			// AIからの返答をDBに保存
-			const chatAIObj = {
-				chatText: AIChatText,// チャット本文
-				sender: 'AI',// 送信者
-				sendDate: new Date(),// 送信の日付
-			};
-			await insertDB(username, 'esChat', chatAIObj);// 引数 dbName:DB名 collectionName:コレクション名 esSettings:保存したい内容(JSON)
+			// DBのES設定を削除
+			await deleteAllDocumentsDB(username, 'esSettings');// 引数 DB名, コレクション名
 
 			// AIからの返答をレスポンスとして返す
-			res.json(AIChatText);
+			res.send('ES作成履歴が削除されました');
 		}
 	} catch (error) {
-		res.send('会話ができませんでした,再度同じ内容を送信してください');
+		res.send('削除ができませんでした,再度同じ内容を送信してください');
 	}
 });
 

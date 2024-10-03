@@ -68,4 +68,24 @@ async function searchDocumentDB(dbName, collectionName, searchField, searchData)
 		await client.close();
 	}
 }
-module.exports = { insertDB, getAllDocumentDB, searchDocumentDB };
+
+// DBからコレクション内のデータを削除
+// 引数	dbName:DB名 collectionName:コレクション名
+// 戻り値　なし
+async function deleteAllDocumentsDB(dbName, collectionName) {
+	try {
+		// データベース、コレクションを指定
+		await client.connect();
+		const database = client.db(dbName);
+		const collection = database.collection(collectionName);
+
+		// データをすべて削除
+		await collection.deleteMany({});
+	} catch (error) {
+		console.error('削除中にエラーが発生', error);
+		throw error;
+	} finally {
+		await client.close();
+	}
+}
+module.exports = { insertDB, getAllDocumentDB, searchDocumentDB, deleteAllDocumentsDB };
