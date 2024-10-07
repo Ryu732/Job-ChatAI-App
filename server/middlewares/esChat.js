@@ -79,7 +79,7 @@ async function createAgent() {
 			geminiLlm,       // 使用するLLM
 			{
 				agentType: "zero-shot-react-description", // エージェントの種類
-				verbose: true, // ログを出力
+				verbose: false, // ログを出力
 				maxRetries: 2, // 最大再試行回数
 			}
 		);
@@ -93,12 +93,15 @@ async function createAgent() {
 
 // AIでES作成の会話を生成
 async function esCreateChat(textMax, company, esMode, esQuestion, chatLog,) {
+	// コンソールにログを出力
+	console.log("esCreateChat:", { textMax, company, esMode, esQuestion, chatLog, });
+
 	const agentExecutor = await createAgent(); // エージェントの初期化
 
 	// 引数の値がない場合は、デフォルト値を設定
-	company = company || "企業名"; // 企業名
-	esQuestion = esQuestion || "ESで聞かれていること"; // ESで聞かれていること
-	chatLog = chatLog || "これまでの会話なし"; // 過去の会話内容
+	company = company || "企業名なし"; // 企業名
+	esQuestion = esQuestion || " "; // ESで聞かれていること
+	chatLog = chatLog || "log nothing"; // 過去の会話内容
 
 	const textMin = Math.floor(textMax * 0.8); // 最低文字数(8割り)
 

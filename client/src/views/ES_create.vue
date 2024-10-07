@@ -23,6 +23,7 @@
 								:disabled="isModeLock"></v-text-field>
 						</div>
 						<v-btn @click="sendSettings" :disabled="isModeLock">ESの設定をAIに読み込む</v-btn>
+						<v-btn @click="deleteESHistory" :disabled="!isModeLock">ES作成履歴を削除</v-btn>
 					</div>
 					<v-btn class="historyBtn">過去の履歴</v-btn>
 				</v-col>
@@ -135,7 +136,7 @@ async function sendAI() {
 	isSubmit.value = true;// フォーム送信中をオンにする
 
 	// axiosを利用して、バックエンドへのデータの送受信
-	await axios.get(`${ESCreateURL}`, inputText.value)
+	await axios.post(`${ESCreateURL}`, { UserChatText: inputText.value })
 		.then(async response => {
 			// チャット欄に返信内容を追加
 			messages.value.push({
@@ -152,6 +153,19 @@ async function sendAI() {
 		});
 
 	isSubmit.value = false;// フォーム送信中をオンにする
+}
+
+// サーバーにES作成履歴を削除するリクエストを送信
+async function deleteESHistory() {
+	await axios.delete(`${ESCreateURL}`)
+		.then(response => {
+			// ページをリロード
+			window.location.reload();
+			alert(response.data);
+		})
+		.catch(error => {
+			alert('エラーが発生しました', error);
+		});
 }
 
 // 一番下まで、チャット画面をスクロールする
