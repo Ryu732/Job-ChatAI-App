@@ -13,13 +13,13 @@ router.post('/setting', async (req, res) => {
 	const token = req.cookies.authToken;
 	const esSettingsObj = req.body;
 	if (!token) {
-		return res.send('ログインしてください');
+		return res.redirect('/');
 	}
 
 	try {
 		const username = await checkToken(token);// ヘッダーのトークンを渡して、認証されたユーザーネームを受け取る
 		if (username == null) {//ログインしていない場合
-			res.send('ログインしてください');
+			res.redirect('/');
 		} else {
 			await insertDB(username, 'esSettings', esSettingsObj);// 引数 dbName:DB名 collectionName:コレクション名 esSettings:保存したい内容(JSON)
 
@@ -48,12 +48,12 @@ router.post('/setting', async (req, res) => {
 router.post('/', async (req, res) => {
 	const token = req.cookies.authToken;// ヘッダーのトークンを取得
 	if (!token) {
-		return res.send('ログインしてください');
+		return res.redirect('/');
 	}
 	try {
 		const username = await checkToken(token);// ヘッダーのトークンを渡して、認証されたユーザーネームを受け取る
 		if (username == null) {//ログインしていない場合
-			res.send('ログインしてください');
+			res.redirect('/');
 		} else {
 			//　ユーザーの送信内容をDBに保存
 			const chatHumanObj = {
@@ -102,12 +102,12 @@ router.post('/', async (req, res) => {
 router.delete('/', async (req, res) => {
 	const token = req.cookies.authToken;// ヘッダーのトークンを取得
 	if (!token) {
-		return res.send('ログインしてください');
+		return res.redirect('/');
 	}
 	try {
 		const username = await checkToken(token);// ヘッダーのトークンを渡して、認証されたユーザーネームを受け取る
 		if (username == null) {//ログインしていない場合
-			res.send('ログインしてください');
+			res.redirect('/');
 		} else {
 			// DBの会話履歴を削除
 			await deleteAllDocumentsDB(username, 'esChat');// 引数 DB名, コレクション名
@@ -120,6 +120,45 @@ router.delete('/', async (req, res) => {
 		}
 	} catch (error) {
 		res.send('削除ができませんでした,再度同じ内容を送信してください');
+	}
+});
+
+// DBに保存されたES作成履歴と設定を取得
+// req	なし
+// res	esSettings:ESの設定 esChat:ES作成履歴(JSONの配列)
+router.get('/', async (req, res) => {
+	const token = req.cookies.authToken;// ヘッダーのトークンを取得
+	if (!token) {
+		return res.redirect('/');
+	}
+	try {
+		const username = await checkToken(token);// ヘッダーのトークンを渡して、認証されたユーザーネームを受け取る
+		if (username == null) {//ログインしていない場合
+			res.redirect('/');
+		} else {
+			// DBからESの設定を取得
+			const esSettings = await getAllDocumentDB(username, 'esSettings');// 引数 DB名, コレクション名
+			const esSettingsObj = esSettings[0];// ESの設定を取得
+
+			// DBからこれまでの会話を取得
+			const chatLog = await getAllDocumentDB(username, 'esChat');// 引数 DB名, コレクション名
+
+			// ESの設定と会話履歴をJSONに変換
+			const esHistory = {
+				esSettings: {
+					esMode: esSettingsObj.esMode || '',
+					esLength: esSettingsObj.esLength || '',
+					esCompany: esSettingsObj.esCompany || '',
+					esQuestion: esSettingsObj.esQuestion || '',
+				},
+				esChat: chatLog,
+			};
+
+			// AIからの返答をレスポンスとして返す
+			res.json(esHistory);
+		}
+	} catch (error) {
+		res.send('情報が取得できませんでした,ログアウトして再度ログインしてください');
 	}
 });
 

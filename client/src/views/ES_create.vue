@@ -39,9 +39,10 @@
 							</div>
 						</div>
 						<v-form @submit.prevent="sendAI" class="input-form">
-							<v-textarea v-model="inputText" :disabled="isSubmit" clearable auto-grow rows="1"
-								class="text-input"></v-textarea>
-							<v-btn @click="sendAI" :loading="isSubmit" rounded="lg" class="send-btn">送信</v-btn>
+							<v-textarea v-model="inputText" :disabled="isSubmit || !isModeLock" clearable auto-grow
+								rows="1" class="text-input"></v-textarea>
+							<v-btn @click="sendAI" :loading="isSubmit || !isModeLock" rounded="lg"
+								class="send-btn">送信</v-btn>
 						</v-form>
 					</div>
 				</v-col>
@@ -51,8 +52,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue';
-//import { useAuthStore } from '@/stores/authstore';
+import { ref, nextTick, onMounted } from 'vue';
 import axios from 'axios';
 
 const esMode = ref([
@@ -74,16 +74,6 @@ const messages = ref([// チャット画面に表示させる情報
 		chatText: 'こんにちは<br>一緒にエントリーシートを考えましょう<br>左側の欄を入力して、送信ボタンを押してください',// チャットの内容
 		sender: 'AI',// 送信者
 	},
-	{
-		id: 2,
-		chatText: 'ES作りたい!',// チャットの内容
-		sender: 'human',// 送信者
-	},
-	{
-		id: 3,
-		chatText: '了解しました。<br>どのようなエントリーシートをご希望でしょうか？',// チャットの内容
-		sender: 'AI',// 送信者
-	},
 ]);
 
 // 入力した会社名を送るエンドポイント
@@ -91,6 +81,40 @@ const baseURL = process.env.VUE_APP_SERVER_BASEURL;
 const ESCreateURL = `${baseURL}/escreate`;
 
 const isSubmit = ref(false);// バックエンドに送信中かどうか
+
+onMounted(async () => {
+	// サーバーのエントリーシート作成履歴を取得
+	await axios.get(`${ESCreateURL}`)
+		.then(async response => {
+			// ES作成履歴がない場合は、何もしない
+			if (response.data.esSettings === null) {
+				return;
+			} else if (response.data.esSettings.esMode !== null) {
+				isModeLock.value = true;// ESモードの選択をロックする
+			}
+
+			// ES作成履歴を反映
+			esModeSelect.value = response.data.esSettings.esMode;
+			esLength.value = response.data.esSettings.esLength;
+			esCompany.value = response.data.esSettings.esCompany;
+			esQuestion.value = response.data.esSettings.esQuestion;
+
+			// チャット欄に返信内容を追加
+			response.data.esChat.forEach((chat) => {
+				messages.value.push({
+					id: messages.value.length + 1,
+					chatText: chat.chatText,
+					sender: chat.sender,
+				});
+			});
+		})
+		.catch(error => {
+			alert('ESの設定を左側からしてください', error);
+		});
+
+	await nextTick();// DOMの更新待ち
+	scrollToBottom();// チャットのスクロールを一番下まで移動
+});
 
 //サーバーにES設定を送信
 async function sendSettings() {
