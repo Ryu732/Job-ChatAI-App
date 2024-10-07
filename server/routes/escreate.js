@@ -57,7 +57,7 @@ router.post('/', async (req, res) => {
 		} else {
 			//　ユーザーの送信内容をDBに保存
 			const chatHumanObj = {
-				chatText: req.body.userChatText,// チャット本文
+				chatText: req.body.UserChatText,// チャット本文
 				sender: 'human',// 送信者
 				sendDate: new Date(),// 送信の日付
 			};

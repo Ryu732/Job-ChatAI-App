@@ -34,7 +34,7 @@ class CharaCountTool extends Tool {
 const promptTemplate = new PromptTemplate({
 	template: `
 		# 命令書:
-		あなたはキャリアコンサルタントです。
+		あなたは経験豊富なキャリアコンサルタントです。
 		以下の制約条件と入力文をもとに、タスクのステップ1かステップ2を実行してください。
 		最高の{esMode}という内容のエントリーシートを作成してください。
 
@@ -50,7 +50,7 @@ const promptTemplate = new PromptTemplate({
 		## ステップ1: ユーザーへの質問:
 		ES作成に関連することをユーザーに質問をしてください。
 		約5~7つの質問を目安としますが、必要な情報が集まったと判断したらステップ2を実行してください。
-		*質問をする際は1回につき、一度しか質問をしてはいけません。*
+		*1回の返答で1つの質問のみを行う*
 		質問例を参考にしながら質問してください。
 
 		### 質問例:
@@ -93,20 +93,20 @@ async function createAgent() {
 
 // AIでES作成の会話を生成
 async function esCreateChat(textMax, company, esMode, esQuestion, chatLog,) {
-	// コンソールにログを出力
-	console.log("esCreateChat:", { textMax, company, esMode, esQuestion, chatLog, });
-
 	const agentExecutor = await createAgent(); // エージェントの初期化
 
 	// 引数の値がない場合は、デフォルト値を設定
-	company = company || "企業名なし"; // 企業名
-	esQuestion = esQuestion || " "; // ESで聞かれていること
+	company = company || "企業名は考慮しない"; // 企業名
+	esQuestion = esQuestion || ""; // ESで聞かれていること
 	chatLog = chatLog || "log nothing"; // 過去の会話内容
 
-	const textMin = Math.floor(textMax * 0.8); // 最低文字数(8割り)
+	// 最低文字数(文字数制限の8割)
+	const textMin = Math.floor(textMax * 0.8);
 
 	// 各変数をプロンプトに埋め込む
 	const fullQuery = await promptTemplate.format({ textMin, textMax, company, esMode, esQuestion, chatLog, });
+
+	console.log("fullQuery:", fullQuery);
 
 	// エージェントからの出力文字
 	let AIChatText = "";
