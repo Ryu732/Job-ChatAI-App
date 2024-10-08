@@ -23,7 +23,7 @@
 								:disabled="isModeLock"></v-text-field>
 						</div>
 						<v-btn @click="sendSettings" :disabled="isModeLock">ESの設定をAIに読み込む</v-btn>
-						<v-btn @click="deleteESHistory" :disabled="!isModeLock">ES作成履歴を削除</v-btn>
+						<v-btn @click="isDeleteDialog = true" :disabled="!isModeLock">ES作成履歴を削除</v-btn>
 					</div>
 					<v-btn class="historyBtn">過去の履歴</v-btn>
 				</v-col>
@@ -32,10 +32,15 @@
 						<div class="chat-out">
 							<div v-for="message in messages" :key="message.id" class="chat-message"
 								:class="{ 'user_hilight': message.sender === 'human' }">
-								<v-icon v-if="message.sender === 'AI'">mdi-robot</v-icon>
-								<v-icon v-else>mdi-account-circle</v-icon>
-
-								<p v-html="message.chatText"></p>
+								<div>
+									<v-icon v-if="message.sender === 'AI'">mdi-robot</v-icon>
+									<v-icon v-else>mdi-account-circle</v-icon>
+									<p v-html="message.chatText"></p>
+								</div>
+								<v-btn @click="saveES(message.id)"
+									v-if="message.sender === 'AI' && messages.length >= 10">
+									<v-icon>mdi-archive</v-icon>
+								</v-btn>
 							</div>
 						</div>
 						<v-form @submit.prevent="sendAI" class="input-form">
@@ -47,6 +52,26 @@
 					</div>
 				</v-col>
 			</v-row>
+			<v-dialog v-model="isDeleteDialog" max-width="400">
+				<v-card>
+					<v-card-title>
+						確認
+					</v-card-title>
+					<v-card-text>
+						本当に会話履歴を削除しますか？<br>
+						（これまでの会話内容は全て削除されます）
+					</v-card-text>
+					<v-card-actions>
+						<v-spacer></v-spacer>
+						<v-btn color="primary" text @click="deleteESHistory">
+							実行する
+						</v-btn>
+						<v-btn color="grey darken-1" text @click="isDeleteDialog = false">
+							キャンセル
+						</v-btn>
+					</v-card-actions>
+				</v-card>
+			</v-dialog>
 		</v-container>
 	</v-main>
 </template>
@@ -66,6 +91,7 @@ const esCompany = ref(null);// 会社名
 const esQuestion = ref(null);// ESで聞かれている質問
 
 const isModeLock = ref(false);// ESモードの選択をロックするかどうか
+const isDeleteDialog = ref(false);// 削除ダイアログの表示
 
 const inputText = ref('');// ユーザーから入力される会社名
 const messages = ref([// チャット画面に表示させる情報
@@ -189,6 +215,22 @@ async function deleteESHistory() {
 		})
 		.catch(error => {
 			alert('エラーが発生しました', error);
+		});
+}
+
+// サーバーにES保存のリクエストを送信
+async function saveES(newESId) {
+	// ESの本文を取得
+	const newES = messages.value[newESId].chatText;
+
+	await axios.post(`${ESCreateURL}/saveES`, { newES: newES })
+		.then(response => {
+			// ページをリロード
+			window.location.reload();
+			alert(response.data);
+		})
+		.catch(error => {
+			alert('エラーが発生しました、もう一度保存ボタンを押してください', error);
 		});
 }
 

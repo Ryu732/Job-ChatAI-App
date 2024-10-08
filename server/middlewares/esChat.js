@@ -85,7 +85,7 @@ async function createAgent() {
 			geminiLlm,       // 使用するLLM
 			{
 				agentType: "zero-shot-react-description", // エージェントの種類
-				verbose: false, // ログを出力
+				verbose: true, // ログを出力
 				maxRetries: 2, // 最大再試行回数
 			}
 		);
@@ -111,8 +111,6 @@ async function esCreateChat(textMax, company, esMode, esQuestion, chatLog,) {
 
 	// 各変数をプロンプトに埋め込む
 	const fullQuery = await promptTemplate.format({ textMin, textMax, company, esMode, esQuestion, chatLog, });
-
-	console.log("fullQuery:", fullQuery);
 
 	// エージェントからの出力文字
 	let AIChatText = "";

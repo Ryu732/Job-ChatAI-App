@@ -162,4 +162,34 @@ router.get('/', async (req, res) => {
 	}
 });
 
+// ES保存のリクエストが来たら、DBにESを保存してこれまでの履歴を削除
+// req	newES:ESの内容
+// res　text:削除完了のテキスト
+router.post('/saveES', async (req, res) => {
+	const token = req.cookies.authToken;// ヘッダーのトークンを取得
+	if (!token) {
+		return res.redirect('/');
+	}
+	try {
+		const username = await checkToken(token);// ヘッダーのトークンを渡して、認証されたユーザーネームを受け取る
+		if (username == null) {//ログインしていない場合
+			res.redirect('/');
+		} else {
+			// リクエストのESをDBに保存
+			const newES = req.body.newES;
+			await insertDB(username, 'esList', newES);// 引数 dbName:DB名 collectionName:コレクション名 newES:保存したい内容(JSON)
+
+			// DBの会話履歴を削除
+			await deleteAllDocumentsDB(username, 'esChat');// 引数 DB名, コレクション名
+
+			// DBのES設定を削除
+			await deleteAllDocumentsDB(username, 'esSettings');// 引数 DB名, コレクション名
+
+			// AIからの返答をレスポンスとして返す
+			res.send('ES作成履歴が削除されました');
+		}
+	} catch (error) {
+		res.send('削除ができませんでした,再度同じ内容を送信してください');
+	}
+});
 module.exports = router;
