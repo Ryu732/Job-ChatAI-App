@@ -175,9 +175,14 @@ router.post('/saveES', async (req, res) => {
 		if (username == null) {//ログインしていない場合
 			res.redirect('/');
 		} else {
+			console.log(req.body.newES);
+
 			// リクエストのESをDBに保存
-			const newES = req.body.newES;
-			await insertDB(username, 'esList', newES);// 引数 dbName:DB名 collectionName:コレクション名 newES:保存したい内容(JSON)
+			const saveES = {
+				newES: req.body.newES,
+				createDate: new Date(),// 送信の日付
+			};
+			await insertDB(username, 'esList', saveES);// 引数 dbName:DB名 collectionName:コレクション名 newES:保存したい内容(JSON)
 
 			// DBの会話履歴を削除
 			await deleteAllDocumentsDB(username, 'esChat');// 引数 DB名, コレクション名
@@ -186,10 +191,10 @@ router.post('/saveES', async (req, res) => {
 			await deleteAllDocumentsDB(username, 'esSettings');// 引数 DB名, コレクション名
 
 			// AIからの返答をレスポンスとして返す
-			res.send('ES作成履歴が削除されました');
+			res.send('ES作成履歴が保存されました');
 		}
 	} catch (error) {
-		res.send('削除ができませんでした,再度同じ内容を送信してください');
+		res.send('保存ができませんでした,再度同じ内容を送信してください');
 	}
 });
 module.exports = router;

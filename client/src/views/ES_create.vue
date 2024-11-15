@@ -38,7 +38,7 @@
 									<p v-html="message.chatText"></p>
 								</div>
 								<v-btn @click="saveES(message.id)"
-									v-if="message.sender === 'AI' && messages.length >= 10">
+									v-if="message.sender === 'AI' && messages.length >= 4">
 									<v-icon>mdi-archive</v-icon>
 								</v-btn>
 							</div>
@@ -94,6 +94,8 @@ const isModeLock = ref(false);// ESモードの選択をロックするかどう
 const isDeleteDialog = ref(false);// 削除ダイアログの表示
 
 const inputText = ref('');// ユーザーから入力される会社名
+
+const firstMessageNum = 1;// チャットに最初からあるメッセージの数
 const messages = ref([// チャット画面に表示させる情報
 	{
 		id: 1,
@@ -221,7 +223,7 @@ async function deleteESHistory() {
 // サーバーにES保存のリクエストを送信
 async function saveES(newESId) {
 	// ESの本文を取得
-	const newES = messages.value[newESId].chatText;
+	const newES = messages.value[newESId - firstMessageNum].chatText;
 
 	await axios.post(`${ESCreateURL}/saveES`, { newES: newES })
 		.then(response => {

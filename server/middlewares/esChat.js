@@ -53,13 +53,13 @@ const promptTemplate = new PromptTemplate({
 		## ステップ1: ユーザーへの質問:
 		ESに必要な情報を収集するため、質問してください:
 		- 質問例を参考にしながらユーザーに質問をしてください。
-		- 質問は4~7回ほど行い、必要な情報が集まったと判断したらステップ2を実行してください。
+		- 質問は5回以上行い、必要な情報が集まったと判断したらステップ2を実行してください。
 
 		### 質問例:
-		- 具体的な経験やエピソードを引き出す質問
-		- その経験における役割や直面した課題に関する質問
-		- 課題に対してどのような行動を取ったかを尋ねる質問
-		- 行動の結果得られた成果に関する質問
+		- 具体的な経験やエピソードありますか？
+		- その経験における役割や直面した課題は何でしたか？
+		- 課題に対してどのような行動を取りましたか？
+		- 行動の結果どのような成果が得られましたか？
 		- {esMode}に関連する追加情報を求める質問
 		- {company}に関する理解や志望理由（該当する場合）
 
@@ -85,7 +85,7 @@ async function createAgent() {
 			geminiLlm,       // 使用するLLM
 			{
 				agentType: "zero-shot-react-description", // エージェントの種類
-				verbose: true, // ログを出力
+				verbose: false, // ログを出力
 				maxRetries: 2, // 最大再試行回数
 			}
 		);
@@ -120,7 +120,6 @@ async function esCreateChat(textMax, company, esMode, esQuestion, chatLog,) {
 
 		// オブジェクトから出力結果を取り出して表示
 		AIChatText = initialResult?.output || JSON.stringify(initialResult);
-		console.log("AIChatText:", AIChatText);
 	} catch (error) {
 		console.error(`Error processing query`, error);
 		return "エラーが発生しました。";
