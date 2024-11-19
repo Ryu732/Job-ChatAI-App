@@ -96,16 +96,17 @@
 		</v-card>
 	</v-dialog>
 	<!-- ログアウトダイアログ-->
-	<v-dialog v-model="logoutDialog" persistent max-width="30em">
+	<v-dialog v-model="logoutDialog" persistent max-width="400">
 		<v-card class="signup-sheet">
-			<v-card-title class="logout-card">
+			<v-card-title>
 				<span class="headline">ログアウト</span>
 			</v-card-title>
-			<v-card-text class="logout-card">
+			<v-card-text>
 				<p>{{ username }} さん</p>
 				<p>本当にログアウトしてもよろしいですか？</p>
 			</v-card-text>
-			<v-card-actions style="justify-content: space-between;" class="logout-card">
+			<v-card-actions style="justify-content: space-between;">
+				<v-spacer></v-spacer>
 				<v-btn @click="logoutDialog = false; logout()"
 					style="background-color: red; color: white;">ログアウト</v-btn>
 				<v-btn @click="logoutDialog = false" color="primary">閉じる</v-btn>

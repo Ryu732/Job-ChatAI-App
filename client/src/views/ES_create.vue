@@ -37,8 +37,7 @@
 									<v-icon v-else>mdi-account-circle</v-icon>
 									<p v-html="message.chatText"></p>
 								</div>
-								<v-btn @click="saveES(message.id)"
-									v-if="message.sender === 'AI' && messages.length >= 4">
+								<v-btn @click="saveES(message.id)" v-if="message.sender === 'AI' && message.id >= 4">
 									<v-icon>mdi-archive</v-icon>
 								</v-btn>
 							</div>
@@ -54,9 +53,6 @@
 			</v-row>
 			<v-dialog v-model="isDeleteDialog" max-width="400">
 				<v-card>
-					<v-card-title>
-						確認
-					</v-card-title>
 					<v-card-text>
 						本当に会話履歴を削除しますか？<br>
 						（これまでの会話内容は全て削除されます）
@@ -190,6 +186,13 @@ async function sendAI() {
 	// axiosを利用して、バックエンドへのデータの送受信
 	await axios.post(`${ESCreateURL}`, { UserChatText: inputText.value })
 		.then(async response => {
+			// ユーザーのメッセージを追加
+			messages.value.push({
+				id: messages.value.length + 1,
+				chatText: inputText.value,
+				sender: 'human'
+			});
+
 			// チャット欄に返信内容を追加
 			messages.value.push({
 				id: messages.value.length + 1,

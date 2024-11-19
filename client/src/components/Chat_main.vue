@@ -44,6 +44,7 @@ const AIResMessages = ref([// チャット画面に表示させる情報
 	}
 ]);
 const isShowMessage = ref([0]);// チャットの表示非表示
+const attentionMessage = '上記の情報は、生成AIの出力です。回答は必ずしも正しいとは限りません。重要な情報は確認するようにしてください。';// チャット画面に表示させる注意事項
 
 // 入力した会社名を送るエンドポイント
 const baseURL = process.env.VUE_APP_SERVER_BASEURL;
@@ -75,7 +76,7 @@ async function sendAI() {
 				id: AIResMessages.value.length + 1,
 				CompanyName: inputText.value,
 				choiceCheckList: response.data.checkText,
-				AIRestext: response.data.resultText,
+				AIRestext: response.data.resultText + '<br>' + attentionMessage, // 生成AIの出力と注意事項を追加 
 			});
 			isShowMessage.value.push(AIResMessages.value.length - 1);// チャットのトグル表示を設定
 			await nextTick();// DOMの更新待ち
